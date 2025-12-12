@@ -8,21 +8,36 @@
 </head>
 <body class="page-home">
   <header class="site-header shell">
-    <div class="brand">
+    <a class="brand" href="/">
       <img src="assets/logo/ahwagames.png" alt="AHWA.GAMES logo" class="brand-logo">
       <div class="brand-text">
         <p class="eyebrow">AHWA.GAMES</p>
         <h1>World of Fun</h1>
       </div>
-    </div>
-    <nav class="nav">
-      <a class="nav-link active" href="/">Home</a>
-      <a class="nav-link" href="#all-games">All Games</a>
-      <a class="nav-link" href="mailto:hello@ahwa.games">Contact</a>
-    </nav>
-    <div class="nav-actions">
-      <a class="btn ghost" href="browseboards.html">Browse Boards</a>
-      <a class="btn accent" href="create.html">Create Board</a>
+    </a>
+
+    <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span class="menu-line"></span>
+      <span class="menu-line"></span>
+      <span class="menu-line"></span>
+    </button>
+
+    <div class="nav-wrap">
+      <nav class="nav" aria-label="Primary">
+        <a class="nav-link active" href="/">Home</a>
+        <a class="nav-link" href="#all-games">All Games</a>
+        <a class="nav-link" href="#about">About</a>
+        <a class="nav-link" href="mailto:hello@ahwa.games">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <label class="search-box header-search" aria-label="Search">
+          <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.71.71l.27.28v.78l5 4.99L20.49 19l-4.99-5Zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z" fill="currentColor"/>
+          </svg>
+          <input type="search" name="search" placeholder="Search" />
+        </label>
+        <a class="btn accent" href="create.html">Create Board</a>
+      </div>
     </div>
   </header>
 
