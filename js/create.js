@@ -18,10 +18,17 @@ const timerNote = document.getElementById('timer-note');
 const copyJsonBtn = document.getElementById('copy-json');
 const downloadBtn = document.getElementById('download-json');
 const configError = document.getElementById('config-error');
+const modal = document.getElementById('cell-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalCategory = document.getElementById('modal-category');
+const modalQuestion = document.getElementById('modal-question');
+const modalAnswer = document.getElementById('modal-answer');
+const modalSave = document.getElementById('modal-save');
 
 if (screens.config && rowsInput && colsInput) {
   let previewTimer = null;
   let countdownInterval = null;
+  let activeCell = null;
 
   const state = {
     title: '',
@@ -123,25 +130,28 @@ if (screens.config && rowsInput && colsInput) {
         const catName = state.categories[c] || `Category ${c + 1}`;
         head.innerHTML = `<span class="category">${catName}</span><span class="points">${pointsScheme[r]} pts</span>`;
 
-        const qWrap = document.createElement('div');
-        qWrap.className = 'cell-body question';
-        const qText = document.createElement('textarea');
-        qText.placeholder = `Question ${r + 1}-${c + 1}`;
-        qText.value = state.grid[r][c].q;
-        qText.dataset.question = `${r}-${c}`;
-        qWrap.appendChild(qText);
+        const body = document.createElement('div');
+        body.className = 'cell-body';
 
-        const aWrap = document.createElement('div');
-        aWrap.className = 'cell-body answer';
-        const aText = document.createElement('textarea');
-        aText.placeholder = `Answer ${r + 1}-${c + 1}`;
-        aText.value = state.grid[r][c].a;
-        aText.dataset.answer = `${r}-${c}`;
-        aWrap.appendChild(aText);
+        const openBtn = document.createElement('button');
+        openBtn.type = 'button';
+        openBtn.className = 'accent cell-open';
+        openBtn.dataset.cellOpen = `${r}-${c}`;
+        openBtn.textContent = `${pointsScheme[r]} points`;
+
+        const status = document.createElement('p');
+        const hasQuestion = Boolean(state.grid[r][c].q);
+        const hasAnswer = Boolean(state.grid[r][c].a);
+        status.className = `cell-status ${hasQuestion && hasAnswer ? 'filled' : ''}`;
+        status.textContent = hasQuestion || hasAnswer
+          ? (hasQuestion && hasAnswer ? 'Question and answer saved' : 'Incomplete entry')
+          : 'Click to add a question and answer';
+
+        body.appendChild(openBtn);
+        body.appendChild(status);
 
         cell.appendChild(head);
-        cell.appendChild(qWrap);
-        cell.appendChild(aWrap);
+        cell.appendChild(body);
         gridContainer.appendChild(cell);
       }
     }
@@ -179,17 +189,6 @@ if (screens.config && rowsInput && colsInput) {
     } else {
       configError.textContent = '';
     }
-  }
-
-  function updateGridStateFromInputs() {
-    gridContainer.querySelectorAll('[data-question]').forEach((input) => {
-      const [r, c] = input.dataset.question.split('-').map(Number);
-      state.grid[r][c].q = input.value;
-    });
-    gridContainer.querySelectorAll('[data-answer]').forEach((input) => {
-      const [r, c] = input.dataset.answer.split('-').map(Number);
-      state.grid[r][c].a = input.value;
-    });
   }
 
   function buildPayload() {
@@ -239,9 +238,34 @@ if (screens.config && rowsInput && colsInput) {
   }
 
   function goToPreview() {
-    updateGridStateFromInputs();
     updatePreview();
     showScreen('preview');
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    activeCell = null;
+  }
+
+  function openModal(r, c) {
+    activeCell = { r, c };
+    const points = generatePointsScheme(state.rows)[r];
+    const catName = state.categories[c] || `Category ${c + 1}`;
+    modalTitle.textContent = `${points} points`;
+    modalCategory.textContent = catName;
+    modalQuestion.value = state.grid[r][c].q || '';
+    modalAnswer.value = state.grid[r][c].a || '';
+    modal.classList.add('open');
+    modalQuestion.focus();
+  }
+
+  function saveModalEntry() {
+    if (!activeCell) return;
+    const { r, c } = activeCell;
+    state.grid[r][c].q = modalQuestion.value.trim();
+    state.grid[r][c].a = modalAnswer.value.trim();
+    renderGrid();
+    closeModal();
   }
 
   function initCategories() {
@@ -276,8 +300,26 @@ if (screens.config && rowsInput && colsInput) {
       syncConfigValidity();
     });
 
-    gridContainer.addEventListener('input', () => {
-      updateGridStateFromInputs();
+    gridContainer.addEventListener('click', (event) => {
+      const trigger = event.target.closest('[data-cell-open]');
+      if (trigger) {
+        const [r, c] = trigger.dataset.cellOpen.split('-').map(Number);
+        openModal(r, c);
+      }
+    });
+
+    modalSave?.addEventListener('click', saveModalEntry);
+
+    modal?.addEventListener('click', (event) => {
+      if (event.target.dataset.closeModal !== undefined || event.target === modal) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal.classList.contains('open')) {
+        closeModal();
+      }
     });
 
     toGridBtn.addEventListener('click', goToGrid);
