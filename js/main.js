@@ -1,19 +1,92 @@
-const form = document.getElementById('board-form');
+const screens = {
+  landing: document.getElementById('landing-screen'),
+  config: document.getElementById('config-screen'),
+  grid: document.getElementById('grid-screen'),
+  preview: document.getElementById('preview-screen'),
+};
+
+const navButtons = document.querySelectorAll('[data-nav]');
+const startCreateBtns = [
+  document.getElementById('start-create'),
+  document.getElementById('create-landing'),
+];
+
 const rowsInput = document.getElementById('rows');
 const colsInput = document.getElementById('columns');
-const categoriesContainer = document.getElementById('categories-container');
-const gridContainer = document.getElementById('grid-container');
 const titleInput = document.getElementById('title');
 const languageInput = document.getElementById('language');
+const categoriesContainer = document.getElementById('categories-container');
+const gridContainer = document.getElementById('grid-container');
+const toGridBtn = document.getElementById('to-grid');
+const toPreviewBtn = document.getElementById('to-preview');
 const jsonOutput = document.getElementById('json-output');
+const timerNote = document.getElementById('timer-note');
+const copyJsonBtn = document.getElementById('copy-json');
 const downloadBtn = document.getElementById('download-json');
-const resetBtn = document.getElementById('reset-form');
-const sampleBtn = document.getElementById('fill-sample');
+
+let previewTimer = null;
+let countdownInterval = null;
+
+const state = {
+  title: '',
+  language: 'en',
+  rows: 5,
+  cols: 5,
+  categories: [],
+  grid: [],
+};
 
 const clampSize = (val) => Math.min(6, Math.max(3, Number(val) || 3));
 
 function generatePointsScheme(rows) {
   return Array.from({ length: rows }, (_, idx) => (idx + 1) * 100);
+}
+
+function resetTimers() {
+  if (previewTimer) {
+    clearTimeout(previewTimer);
+    previewTimer = null;
+  }
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+  timerNote.textContent = '';
+}
+
+function showScreen(key) {
+  resetTimers();
+  Object.entries(screens).forEach(([name, el]) => {
+    el.classList.toggle('active', name === key);
+  });
+
+  if (key === 'preview') {
+    startPreviewTimer();
+  }
+}
+
+function startPreviewTimer() {
+  let remaining = 10;
+  timerNote.textContent = `Returning to landing in ${remaining}s...`;
+  countdownInterval = setInterval(() => {
+    remaining -= 1;
+    timerNote.textContent = `Returning to landing in ${remaining}s...`;
+    if (remaining <= 0) {
+      clearInterval(countdownInterval);
+    }
+  }, 1000);
+
+  previewTimer = setTimeout(() => {
+    showScreen('landing');
+  }, 10000);
+}
+
+function ensureGridState() {
+  const rows = clampSize(state.rows);
+  const cols = clampSize(state.cols);
+  state.grid = Array.from({ length: rows }, (_, r) =>
+    Array.from({ length: cols }, (_, c) => state.grid?.[r]?.[c] || { q: '', a: '' })
+  );
 }
 
 function createCategoryInputs(cols) {
@@ -23,183 +96,175 @@ function createCategoryInputs(cols) {
     wrapper.className = 'field';
 
     const nameLabel = document.createElement('label');
-    nameLabel.innerHTML = `<span>Category ${i + 1} name</span>`;
+    nameLabel.innerHTML = `<span>Category ${i + 1}</span>`;
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
-    nameInput.placeholder = `E.g. Topic ${i + 1}`;
-    nameInput.dataset.categoryName = i;
+    nameInput.placeholder = `Topic ${i + 1}`;
+    nameInput.value = state.categories[i] || '';
+    nameInput.dataset.category = i;
     nameLabel.appendChild(nameInput);
 
-    const slugLabel = document.createElement('label');
-    slugLabel.innerHTML = `<span>Category ${i + 1} slug</span>`;
-    const slugInput = document.createElement('input');
-    slugInput.type = 'text';
-    slugInput.placeholder = `topic-${i + 1}`;
-    slugInput.dataset.categorySlug = i;
-    slugLabel.appendChild(slugInput);
-
     wrapper.appendChild(nameLabel);
-    wrapper.appendChild(slugLabel);
     categoriesContainer.appendChild(wrapper);
   }
 }
 
-function createGrid(rows, cols) {
+function renderGrid() {
+  ensureGridState();
   gridContainer.innerHTML = '';
-  const table = document.createElement('table');
-  const thead = document.createElement('thead');
-  const headRow = document.createElement('tr');
-  headRow.appendChild(document.createElement('th')); // empty corner for points label
+  const pointsScheme = generatePointsScheme(state.rows);
 
-  for (let col = 0; col < cols; col += 1) {
-    const th = document.createElement('th');
-    th.textContent = `Column ${col + 1}`;
-    headRow.appendChild(th);
-  }
-  thead.appendChild(headRow);
-  table.appendChild(thead);
+  for (let r = 0; r < state.rows; r += 1) {
+    for (let c = 0; c < state.cols; c += 1) {
+      const cell = document.createElement('div');
+      cell.className = 'cell-card';
 
-  const tbody = document.createElement('tbody');
-  const pointsScheme = generatePointsScheme(rows);
+      const head = document.createElement('div');
+      head.className = 'cell-head';
+      const catName = state.categories[c] || `Category ${c + 1}`;
+      head.innerHTML = `<span class="category">${catName}</span><span class="points">${pointsScheme[r]} pts</span>`;
 
-  for (let row = 0; row < rows; row += 1) {
-    const tr = document.createElement('tr');
-    const pointsCell = document.createElement('th');
-    pointsCell.textContent = `${pointsScheme[row]} pts`;
-    tr.appendChild(pointsCell);
+      const qWrap = document.createElement('div');
+      qWrap.className = 'cell-body question';
+      const qText = document.createElement('textarea');
+      qText.placeholder = `Question ${r + 1}-${c + 1}`;
+      qText.value = state.grid[r][c].q;
+      qText.dataset.question = `${r}-${c}`;
+      qWrap.appendChild(qText);
 
-    for (let col = 0; col < cols; col += 1) {
-      const td = document.createElement('td');
-      const wrapper = document.createElement('div');
-      wrapper.className = 'cell-inputs';
+      const aWrap = document.createElement('div');
+      aWrap.className = 'cell-body answer';
+      const aText = document.createElement('textarea');
+      aText.placeholder = `Answer ${r + 1}-${c + 1}`;
+      aText.value = state.grid[r][c].a;
+      aText.dataset.answer = `${r}-${c}`;
+      aWrap.appendChild(aText);
 
-      const qLabel = document.createElement('label');
-      qLabel.innerHTML = '<span>Question</span>';
-      const qInput = document.createElement('textarea');
-      qInput.placeholder = `Question ${row + 1}-${col + 1}`;
-      qInput.dataset.question = `${row}-${col}`;
-      qLabel.appendChild(qInput);
-
-      const aLabel = document.createElement('label');
-      aLabel.innerHTML = '<span>Answer</span>';
-      const aInput = document.createElement('textarea');
-      aInput.placeholder = `Answer ${row + 1}-${col + 1}`;
-      aInput.dataset.answer = `${row}-${col}`;
-      aLabel.appendChild(aInput);
-
-      wrapper.appendChild(qLabel);
-      wrapper.appendChild(aLabel);
-      td.appendChild(wrapper);
-      tr.appendChild(td);
+      cell.appendChild(head);
+      cell.appendChild(qWrap);
+      cell.appendChild(aWrap);
+      gridContainer.appendChild(cell);
     }
-
-    tbody.appendChild(tr);
   }
+}
 
-  table.appendChild(tbody);
-  gridContainer.appendChild(table);
+function updateStateFromConfig() {
+  state.title = titleInput.value.trim();
+  state.language = languageInput.value;
+  state.rows = clampSize(rowsInput.value);
+  state.cols = clampSize(colsInput.value);
+  rowsInput.value = state.rows;
+  colsInput.value = state.cols;
+  state.categories = Array.from(categoriesContainer.querySelectorAll('[data-category]')).map((input, idx) =>
+    input.value.trim() || `Category ${idx + 1}`
+  );
+  ensureGridState();
+}
+
+function updateGridStateFromInputs() {
+  gridContainer.querySelectorAll('[data-question]').forEach((input) => {
+    const [r, c] = input.dataset.question.split('-').map(Number);
+    state.grid[r][c].q = input.value;
+  });
+  gridContainer.querySelectorAll('[data-answer]').forEach((input) => {
+    const [r, c] = input.dataset.answer.split('-').map(Number);
+    state.grid[r][c].a = input.value;
+  });
 }
 
 function buildPayload() {
-  const rows = clampSize(rowsInput.value);
-  const cols = clampSize(colsInput.value);
-  const pointsScheme = generatePointsScheme(rows);
-
-  const categories = Array.from(categoriesContainer.querySelectorAll('[data-category-name]')).map((input, idx) => ({
-    name: input.value || `Category ${idx + 1}`,
-    slug: categoriesContainer.querySelector(`[data-category-slug="${idx}"]`)?.value || `category-${idx + 1}`
-  }));
-
-  const grid = [];
-  for (let r = 0; r < rows; r += 1) {
-    const row = [];
-    for (let c = 0; c < cols; c += 1) {
-      const q = gridContainer.querySelector(`[data-question="${r}-${c}"]`)?.value || '';
-      const a = gridContainer.querySelector(`[data-answer="${r}-${c}"]`)?.value || '';
-      row.push({ points: pointsScheme[r], q, a });
-    }
-    grid.push(row);
-  }
-
+  const pointsScheme = generatePointsScheme(state.rows);
   return {
     pk: 'BOARD#<chosen by backend>',
     sk: 'META',
-    title: titleInput.value || '',
-    language: languageInput.value,
-    categories,
+    title: state.title,
+    language: state.language,
+    categories: state.categories.map((name) => ({ name })),
     points_scheme: pointsScheme,
     version: 1,
-    grid,
+    grid: state.grid.map((row, r) =>
+      row.map((cell) => ({ points: pointsScheme[r], q: cell.q, a: cell.a }))
+    ),
   };
 }
 
-function updateOutput() {
+function updatePreview() {
   const payload = buildPayload();
   jsonOutput.value = JSON.stringify(payload, null, 2);
-  downloadBtn.disabled = !titleInput.value.trim();
 }
 
-function handleResize() {
-  const rows = clampSize(rowsInput.value);
-  const cols = clampSize(colsInput.value);
-  rowsInput.value = rows;
-  colsInput.value = cols;
-  createCategoryInputs(cols);
-  createGrid(rows, cols);
-  updateOutput();
-}
-
-function resetForm() {
-  form.reset();
-  rowsInput.value = 5;
-  colsInput.value = 5;
-  handleResize();
-}
-
-function fillSampleData() {
-  const rows = clampSize(rowsInput.value);
-  const cols = clampSize(colsInput.value);
-  categoriesContainer.querySelectorAll('input[data-category-name]').forEach((input, idx) => {
-    input.value = `Category ${idx + 1}`;
-  });
-  categoriesContainer.querySelectorAll('input[data-category-slug]').forEach((input, idx) => {
-    input.value = `category-${idx + 1}`;
-  });
-
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) {
-      const qEl = gridContainer.querySelector(`[data-question="${r}-${c}"]`);
-      const aEl = gridContainer.querySelector(`[data-answer="${r}-${c}"]`);
-      if (qEl) qEl.value = `Sample question ${r + 1}-${c + 1}?`;
-      if (aEl) aEl.value = `Answer ${r + 1}-${c + 1}`;
-    }
-  }
-
-  titleInput.value = 'New Board';
-  updateOutput();
-}
-
-function downloadJSON() {
+function handleDownload() {
   const payload = buildPayload();
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${(titleInput.value || 'board').toLowerCase().replace(/\s+/g, '-')}.json`;
+  link.download = `${(state.title || 'board').toLowerCase().replace(/\s+/g, '-')}.json`;
   link.click();
   URL.revokeObjectURL(url);
 }
 
-// Event bindings
-rowsInput.addEventListener('change', handleResize);
-colsInput.addEventListener('change', handleResize);
+function handleCopy() {
+  navigator.clipboard?.writeText(jsonOutput.value);
+}
 
-categoriesContainer.addEventListener('input', updateOutput);
-gridContainer.addEventListener('input', updateOutput);
-form.addEventListener('input', updateOutput);
+function goToGrid() {
+  updateStateFromConfig();
+  renderGrid();
+  showScreen('grid');
+}
 
-resetBtn.addEventListener('click', resetForm);
-sampleBtn.addEventListener('click', fillSampleData);
-downloadBtn.addEventListener('click', downloadJSON);
+function goToPreview() {
+  updateGridStateFromInputs();
+  updatePreview();
+  showScreen('preview');
+}
 
-handleResize();
+function initCategories() {
+  createCategoryInputs(state.cols);
+}
+
+function bindEvents() {
+  startCreateBtns.forEach((btn) => btn?.addEventListener('click', () => showScreen('config')));
+  document.getElementById('browse-btn')?.addEventListener('click', () => {});
+  document.getElementById('browse-landing')?.addEventListener('click', () => {});
+
+  navButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      showScreen(btn.dataset.nav);
+    });
+  });
+
+  rowsInput.addEventListener('change', () => {
+    state.rows = clampSize(rowsInput.value);
+    rowsInput.value = state.rows;
+    ensureGridState();
+  });
+
+  colsInput.addEventListener('change', () => {
+    state.cols = clampSize(colsInput.value);
+    colsInput.value = state.cols;
+    createCategoryInputs(state.cols);
+  });
+
+  categoriesContainer.addEventListener('input', () => {
+    state.categories = Array.from(categoriesContainer.querySelectorAll('[data-category]')).map((input) => input.value);
+  });
+
+  gridContainer.addEventListener('input', () => {
+    updateGridStateFromInputs();
+  });
+
+  toGridBtn.addEventListener('click', goToGrid);
+  toPreviewBtn.addEventListener('click', goToPreview);
+  downloadBtn.addEventListener('click', handleDownload);
+  copyJsonBtn.addEventListener('click', handleCopy);
+}
+
+function init() {
+  initCategories();
+  ensureGridState();
+  bindEvents();
+}
+
+init();

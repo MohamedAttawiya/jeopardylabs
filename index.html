@@ -3,36 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Board Builder</title>
+  <title>Jeopardy Board Builder</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <header class="page-header">
-    <div>
-      <p class="eyebrow">JeopardyLabs Sandbox</p>
-      <h1>Custom Board Builder</h1>
-      <p class="lede">Create a 3x3 to 6x6 board and export the JSON payload expected by the backend.</p>
+  <header class="topbar">
+    <div class="brand">
+      <span class="spark">✦</span>
+      <div>
+        <p class="eyebrow">JeopardyLabs Sandbox</p>
+        <h1>Board Builder</h1>
+      </div>
     </div>
-    <div class="cta-group">
-      <button id="reset-form" class="secondary">Reset</button>
-      <button id="download-json" class="primary" disabled>Download JSON</button>
+    <div class="top-actions">
+      <button class="ghost" id="browse-btn" type="button">Browse</button>
+      <button class="accent" id="start-create" type="button">Create</button>
     </div>
   </header>
 
-  <main class="layout">
-    <section class="card" aria-labelledby="board-config-title">
-      <div class="card-header">
-        <h2 id="board-config-title">Board configuration</h2>
-        <p class="hint">Choose your grid size (rows x columns) between 3 and 6.</p>
+  <main>
+    <section id="landing-screen" class="screen active">
+      <div class="hero">
+        <div>
+          <p class="eyebrow">Ready, set, question!</p>
+          <h2>Build a custom Jeopardy-style board in minutes.</h2>
+          <p class="lede">Pick your grid size, drop in categories, and fill each clue. Export-ready JSON appears automatically.</p>
+          <div class="cta-row">
+            <div class="search-box" aria-label="Search coming soon">
+              <input type="search" placeholder="Search boards (coming soon)" disabled>
+              <button type="button" class="ghost" disabled>Search</button>
+            </div>
+            <div class="cta-buttons">
+              <button class="ghost" type="button" id="browse-landing">Browse</button>
+              <button class="accent" type="button" id="create-landing">Create a board</button>
+            </div>
+          </div>
+        </div>
+        <div class="card highlight">
+          <p class="hint">Flow preview</p>
+          <ol>
+            <li>Choose rows and columns (3–6).</li>
+            <li>List your categories.</li>
+            <li>Write questions & answers.</li>
+            <li>See the JSON for 10 seconds.</li>
+          </ol>
+        </div>
       </div>
-      <form id="board-form" class="form-grid">
+    </section>
+
+    <section id="config-screen" class="screen">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Step 1</p>
+          <h2>Board configuration</h2>
+          <p class="lede">Set your grid size and name your categories. Slugs are handled by the backend.</p>
+        </div>
+        <div class="step-actions">
+          <button type="button" class="ghost" data-nav="landing">Back</button>
+          <button type="button" class="accent" id="to-grid">Next</button>
+        </div>
+      </div>
+      <form id="config-form" class="panel-grid">
         <label>
           <span>Board title</span>
-          <input type="text" id="title" name="title" placeholder="E.g. Science & History" required>
+          <input type="text" id="title" placeholder="E.g. Science & History" required>
         </label>
         <label>
           <span>Language</span>
-          <select id="language" name="language">
+          <select id="language">
             <option value="en">English (en)</option>
             <option value="es">Spanish (es)</option>
             <option value="fr">French (fr)</option>
@@ -40,40 +78,61 @@
         </label>
         <label>
           <span>Rows</span>
-          <input type="number" id="rows" name="rows" min="3" max="6" value="5">
+          <input type="number" id="rows" min="3" max="6" value="5">
         </label>
         <label>
           <span>Columns</span>
-          <input type="number" id="columns" name="columns" min="3" max="6" value="5">
+          <input type="number" id="columns" min="3" max="6" value="5">
         </label>
       </form>
-    </section>
 
-    <section class="card" aria-labelledby="categories-title">
-      <div class="card-header">
-        <h2 id="categories-title">Categories</h2>
-        <p class="hint">Provide the display name and slug for each column.</p>
-      </div>
-      <div id="categories-container" class="category-grid"></div>
-    </section>
-
-    <section class="card" aria-labelledby="grid-title">
-      <div class="card-header">
-        <div>
-          <h2 id="grid-title">Grid entries</h2>
-          <p class="hint">Enter a question and answer for each cell. Points auto-fill per row.</p>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Categories</h3>
+          <p class="hint">Add one category per column.</p>
         </div>
-        <button id="fill-sample" type="button" class="secondary">Fill sample data</button>
+        <div id="categories-container" class="category-grid"></div>
       </div>
-      <div id="grid-container" class="grid-table" aria-live="polite"></div>
     </section>
 
-    <section class="card" aria-labelledby="output-title">
-      <div class="card-header">
-        <h2 id="output-title">Generated JSON</h2>
-        <p class="hint">The payload updates automatically as you edit.</p>
+    <section id="grid-screen" class="screen">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Step 2</p>
+          <h2>Grid entries</h2>
+          <p class="lede">Questions on top, answers on the bottom. Points auto-fill per row.</p>
+        </div>
+        <div class="step-actions">
+          <button type="button" class="ghost" data-nav="config">Back</button>
+          <button type="button" class="accent" id="to-preview">Next</button>
+        </div>
       </div>
-      <textarea id="json-output" readonly aria-label="Generated JSON"></textarea>
+      <div id="grid-container" class="grid-cards" aria-live="polite"></div>
+    </section>
+
+    <section id="preview-screen" class="screen">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Step 3</p>
+          <h2>JSON preview</h2>
+          <p class="lede">This view will return to the landing screen after 10 seconds.</p>
+        </div>
+        <div class="step-actions">
+          <button type="button" class="ghost" data-nav="landing">Skip timer</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Payload</h3>
+          <p class="hint">Copy or download the JSON if you need it.</p>
+          <div class="inline-actions">
+            <button type="button" class="ghost" id="copy-json">Copy</button>
+            <button type="button" class="accent" id="download-json">Download</button>
+          </div>
+        </div>
+        <textarea id="json-output" readonly aria-label="Generated JSON"></textarea>
+        <p class="hint" id="timer-note"></p>
+      </div>
     </section>
   </main>
 
