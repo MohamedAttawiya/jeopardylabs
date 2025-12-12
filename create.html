@@ -15,10 +15,7 @@
         <div>
           <p class="eyebrow">Step 1</p>
           <h2>Board configuration</h2>
-          <p class="lede">Set your grid size and name your categories. Slugs are handled by the backend.</p>
-        </div>
-        <div class="step-actions solo">
-          <button type="button" class="accent" id="to-grid" disabled>Next</button>
+          <p class="lede">Set your grid size and name your categories.</p>
         </div>
       </div>
 
@@ -62,6 +59,9 @@
         <div id="categories-container" class="category-grid"></div>
       </div>
       <p class="error" id="config-error" role="alert" aria-live="polite"></p>
+      <div class="step-actions step-actions-bottom">
+        <button type="button" class="accent" id="to-grid" disabled>Next</button>
+      </div>
     </section>
 
     <section id="grid-screen" class="screen">
@@ -76,6 +76,7 @@
         <div id="grid-category-row" class="grid-category-row" aria-live="polite"></div>
         <div id="grid-container" class="grid-cards" aria-live="polite"></div>
       </div>
+      <p class="error" id="grid-error" role="alert" aria-live="polite"></p>
       <div class="step-actions step-actions-bottom">
         <button type="button" class="ghost" data-nav="config">Back</button>
         <button type="button" class="accent" id="to-preview">Next</button>

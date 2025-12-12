@@ -19,6 +19,7 @@ const timerNote = document.getElementById('timer-note');
 const copyJsonBtn = document.getElementById('copy-json');
 const downloadBtn = document.getElementById('download-json');
 const configError = document.getElementById('config-error');
+const gridError = document.getElementById('grid-error');
 const modal = document.getElementById('cell-modal');
 const modalTitle = document.getElementById('modal-title');
 const modalCategory = document.getElementById('modal-category');
@@ -41,6 +42,11 @@ if (screens.config && rowsInput && colsInput) {
   };
 
   const clampSize = (val) => Math.min(6, Math.max(3, Number(val) || 3));
+
+  function hasDuplicateCategories(names) {
+    const normalized = names.map((name) => name.trim().toLowerCase()).filter(Boolean);
+    return new Set(normalized).size !== normalized.length;
+  }
 
   function generatePointsScheme(rows) {
     return Array.from({ length: rows }, (_, idx) => (idx + 1) * 100);
@@ -206,20 +212,41 @@ if (screens.config && rowsInput && colsInput) {
     const rows = clampSize(rowsInput.value);
     const cols = clampSize(colsInput.value);
     const categoryInputs = categoriesContainer.querySelectorAll('[data-category]');
-    const filledCategories =
-      categoryInputs.length === cols && Array.from(categoryInputs).every((input) => input.value.trim().length > 0);
+    const categoryNames = Array.from(categoryInputs).map((input) => input.value.trim());
+    const filledCategories = categoryInputs.length === cols && categoryNames.every((name) => name.length > 0);
+    const hasDuplicates = hasDuplicateCategories(categoryNames);
 
-    return Boolean(title && rows && cols && filledCategories);
+    return Boolean(title && rows && cols && filledCategories && !hasDuplicates);
   }
 
   function syncConfigValidity() {
-    const valid = isConfigComplete();
-    toGridBtn.disabled = !valid;
-    if (!valid) {
-      configError.textContent = 'Please complete the title, grid size, and every category before continuing.';
-    } else {
-      configError.textContent = '';
+    const title = titleInput.value.trim();
+    const rows = clampSize(rowsInput.value);
+    const cols = clampSize(colsInput.value);
+    const categoryInputs = categoriesContainer.querySelectorAll('[data-category]');
+    const categoryNames = Array.from(categoryInputs).map((input) => input.value.trim());
+    const filledCategories = categoryInputs.length === cols && categoryNames.every((name) => name.length > 0);
+    const hasDuplicates = hasDuplicateCategories(categoryNames);
+
+    let message = '';
+    if (!title || !rows || !cols || !filledCategories) {
+      message = 'Please complete the title, grid size, and every category before continuing.';
+    } else if (hasDuplicates) {
+      message = 'Category names must be unique.';
     }
+
+    toGridBtn.disabled = Boolean(message);
+    configError.textContent = message;
+  }
+
+  function isGridComplete() {
+    return state.grid.every((row) => row.every((cell) => cell.q.trim() && cell.a.trim()));
+  }
+
+  function syncGridValidity() {
+    const complete = isGridComplete();
+    toPreviewBtn.disabled = !complete;
+    gridError.textContent = complete ? '' : 'Fill every question and answer before moving on.';
   }
 
   function buildPayload() {
@@ -266,9 +293,14 @@ if (screens.config && rowsInput && colsInput) {
     updateStateFromConfig();
     renderGrid();
     showScreen('grid');
+    syncGridValidity();
   }
 
   function goToPreview() {
+    if (!isGridComplete()) {
+      syncGridValidity();
+      return;
+    }
     updatePreview();
     showScreen('preview');
   }
@@ -296,6 +328,7 @@ if (screens.config && rowsInput && colsInput) {
     state.grid[r][c].q = modalQuestion.value.trim();
     state.grid[r][c].a = modalAnswer.value.trim();
     renderGrid();
+    syncGridValidity();
     closeModal();
   }
 
@@ -363,6 +396,7 @@ if (screens.config && rowsInput && colsInput) {
     initCategories();
     ensureGridState();
     syncConfigValidity();
+    syncGridValidity();
     bindEvents();
   }
 
