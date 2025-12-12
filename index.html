@@ -10,21 +10,21 @@
   <header class="site-header shell">
     <a class="brand" href="/">
       <img src="assets/logo/ahwagames.png" alt="AHWA.GAMES logo" class="brand-logo">
-      <div class="brand-text">
-        <p class="eyebrow">AHWA.GAMES</p>
-        <h1>World of Fun</h1>
-      </div>
+      <span class="wordmark">ahwa.games</span>
     </a>
 
     <div class="nav-wrap">
       <nav class="nav" aria-label="Primary">
         <a class="nav-link active" href="/">Home</a>
         <a class="nav-link" href="#all-games">All Games</a>
+        <a class="nav-link" href="#">About</a>
         <a class="nav-link" href="mailto:hello@ahwa.games">Contact</a>
       </nav>
       <div class="nav-actions">
-        <a class="btn ghost" href="#all-games">Search</a>
-        <a class="btn accent" href="create.html">Create Board</a>
+        <label class="search-inline" aria-label="Search games">
+          <input type="search" placeholder="Search" />
+        </label>
+        <a class="btn create" href="create.html">Create Board</a>
       </div>
     </div>
 
@@ -40,12 +40,11 @@
       <div class="hero-visual">
         <picture>
           <source media="(max-width: 720px)" srcset="assets/banner/mobilebannerlanding.png">
-          <img src="assets/banner/pcbannerlanding.png" alt="Colorful welcome banner" class="hero-image compact">
+          <img src="assets/banner/pcbannerlanding.png" alt="Welcome to ahwa.games – Your World of Fun!" class="hero-image compact">
         </picture>
-        <div class="hero-overlay">
-          <p class="hero-title">Welcome to ahwa.games – Your World of Fun!</p>
-          <a class="btn primary" href="#all-games">Browse All Games</a>
-        </div>
+      </div>
+      <div class="hero-cta">
+        <a class="btn primary" href="#all-games">Browse All Games</a>
       </div>
     </section>
 
@@ -55,12 +54,40 @@
       </div>
 
       <div class="game-gallery">
-        <a class="game-card compact" href="browseboards.html">
-          <div class="game-icon small">
-            <img src="assets/icons/jeopardylabsicon.png" alt="Boards icon">
-          </div>
+        <a class="game-card" href="#">
+          <div class="game-icon badge puzzle">🧩</div>
           <div class="game-meta centered">
-            <h3>Boards</h3>
+            <h3>Puzzle Master</h3>
+          </div>
+        </a>
+        <a class="game-card" href="#">
+          <div class="game-icon badge">🔤</div>
+          <div class="game-meta centered">
+            <h3>Word Wiz</h3>
+          </div>
+        </a>
+        <a class="game-card" href="#">
+          <div class="game-icon badge swords">⚔️</div>
+          <div class="game-meta centered">
+            <h3>Strategy Quest</h3>
+          </div>
+        </a>
+        <a class="game-card" href="#">
+          <div class="game-icon badge arcade">🕹️</div>
+          <div class="game-meta centered">
+            <h3>Arcade Action</h3>
+          </div>
+        </a>
+        <a class="game-card" href="#">
+          <div class="game-icon badge cards">🎴</div>
+          <div class="game-meta centered">
+            <h3>Card Shark</h3>
+          </div>
+        </a>
+        <a class="game-card" href="browseboards.html">
+          <div class="game-icon badge">❓</div>
+          <div class="game-meta centered">
+            <h3>Trivia Time</h3>
           </div>
         </a>
       </div>
