@@ -6,19 +6,90 @@
   <title>AHWA.GAMES Platform</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-  <main class="landing landing-plain">
-    <section class="hero hero-centered">
-      <div class="logo-block" aria-hidden="true">
-        <img src="assets/logo/ahwagames.png" alt="AHWA.GAMES logo" class="logo-image">
-      </div>
-      <p class="eyebrow">AHWA.GAMES</p>
-      <h2>One stop for every Ahwa game.</h2>
-      <p class="lede">Ahwa.games is the home for all Ahwa experiences. The Jeopardy-style workflow lives here alongside every other game on the platform.</p>
+<body class="page-home">
+  <header class="site-header shell">
+    <a class="brand" href="/">
+      <img src="assets/logo/ahwagames.png" alt="AHWA.GAMES logo" class="brand-logo">
+      <span class="wordmark">ahwa.games</span>
+    </a>
 
-      <div class="cta-buttons">
-        <a class="btn accent" href="create.html">Open Jeopardy workflow</a>
-        <button class="ghost" type="button" aria-disabled="true">Browse games</button>
+    <div class="nav-wrap">
+      <nav class="nav" aria-label="Primary">
+        <a class="nav-link active" href="/">Home</a>
+        <a class="nav-link" href="#all-games">All Games</a>
+        <a class="nav-link" href="#">About</a>
+        <a class="nav-link" href="mailto:hello@ahwa.games">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <label class="search-inline" aria-label="Search games">
+          <input type="search" placeholder="Search" />
+        </label>
+        <a class="btn create" href="create.html">Create Board</a>
+      </div>
+    </div>
+
+    <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span class="menu-line"></span>
+      <span class="menu-line"></span>
+      <span class="menu-line"></span>
+    </button>
+  </header>
+
+  <main>
+    <section class="hero-strip shell">
+      <div class="hero-visual">
+        <picture>
+          <source media="(max-width: 720px)" srcset="assets/banner/mobilebannerlanding.png">
+          <img src="assets/banner/pcbannerlanding.png" alt="Welcome to ahwa.games – Your World of Fun!" class="hero-image compact">
+        </picture>
+      </div>
+      <div class="hero-cta">
+        <a class="btn primary" href="#all-games">Browse All Games</a>
+      </div>
+    </section>
+
+    <section class="games shell" id="all-games">
+      <div class="section-head minimal">
+        <h2>All Games</h2>
+      </div>
+
+      <div class="game-gallery">
+        <a class="game-card" href="#">
+          <div class="game-icon badge puzzle">🧩</div>
+          <div class="game-meta centered">
+            <h3>Puzzle Master</h3>
+          </div>
+        </a>
+        <a class="game-card" href="#">
+          <div class="game-icon badge">🔤</div>
+          <div class="game-meta centered">
+            <h3>Word Wiz</h3>
+          </div>
+        </a>
+        <a class="game-card" href="#">
+          <div class="game-icon badge swords">⚔️</div>
+          <div class="game-meta centered">
+            <h3>Strategy Quest</h3>
+          </div>
+        </a>
+        <a class="game-card" href="#">
+          <div class="game-icon badge arcade">🕹️</div>
+          <div class="game-meta centered">
+            <h3>Arcade Action</h3>
+          </div>
+        </a>
+        <a class="game-card" href="#">
+          <div class="game-icon badge cards">🎴</div>
+          <div class="game-meta centered">
+            <h3>Card Shark</h3>
+          </div>
+        </a>
+        <a class="game-card" href="browseboards.html">
+          <div class="game-icon badge">❓</div>
+          <div class="game-meta centered">
+            <h3>Trivia Time</h3>
+          </div>
+        </a>
       </div>
     </section>
   </main>
