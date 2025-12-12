@@ -8,32 +8,29 @@
 </head>
 <body class="page-boards">
   <header class="site-header">
-    <div class="header-inner shell">
-      <a class="brand" href="/">
-        <img src="../../assets/logo/ahwagames.png" alt="AHWA.GAMES logo" class="brand-logo">
+    <nav class="navbar" aria-label="Primary">
+      <a class="logo" href="/">
+        <img src="../../assets/logo/ahwagames.png" alt="ahwa.games logo">
         <span class="wordmark">ahwa.games</span>
       </a>
 
-      <div class="nav-wrap">
-        <nav class="nav" aria-label="Primary">
-          <a class="nav-link" href="/">Home</a>
-          <a class="nav-link" href="/#featured-games">Featured Games</a>
-          <a class="nav-link" href="#">About</a>
-          <a class="nav-link" href="mailto:hello@ahwa.games">Contact</a>
-        </nav>
-        <div class="nav-actions">
-          <label class="search-inline" aria-label="Search boards">
-            <input type="search" placeholder="Search" />
-          </label>
-        </div>
-      </div>
+      <input id="menu-toggle" class="menu-toggle" type="checkbox" aria-hidden="true">
+      <label for="menu-toggle" class="menu-icon" aria-label="Toggle navigation" role="button">
+        <span></span><span></span><span></span>
+      </label>
 
-      <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">
-        <span class="menu-line"></span>
-        <span class="menu-line"></span>
-        <span class="menu-line"></span>
-      </button>
-    </div>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a class="is-active" href="/#featured-games">All Games</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="mailto:hello@ahwa.games">Contact</a></li>
+        <li class="nav-search">
+          <form action="/search" role="search">
+            <input type="search" name="q" placeholder="Search" aria-label="Search">
+          </form>
+        </li>
+      </ul>
+    </nav>
   </header>
 
   <main>
