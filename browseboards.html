@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Boards | AHWA.GAMES</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="site-header shell">
+    <div class="brand">
+      <img src="assets/logo/ahwagames.png" alt="AHWA.GAMES logo" class="brand-logo">
+      <div class="brand-text">
+        <p class="eyebrow">AHWA.GAMES</p>
+        <h1>World of Fun</h1>
+      </div>
+    </div>
+    <nav class="nav">
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link active" href="browseboards.html">All Games</a>
+      <a class="nav-link" href="mailto:hello@ahwa.games">Contact</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn ghost" href="/">Back Home</a>
+      <a class="btn accent" href="create.html">Create Board</a>
+    </div>
+  </header>
+
+  <main class="shell" style="display: grid; gap: 18px;">
+    <section class="card" style="display: grid; gap: 14px; background: linear-gradient(135deg, #f5f3ff, #e0f2fe);">
+      <div class="badge">Boards</div>
+      <h2 style="margin: 0; color: var(--primary);">Browse Boards</h2>
+      <p class="lede">Discover community-made boards and get inspired. This page will soon list every board available on the platform.</p>
+      <div class="cta-buttons" style="justify-content: flex-start;">
+        <a class="btn accent" href="create.html">Create New Board</a>
+        <a class="btn ghost" href="/">Return Home</a>
+      </div>
+    </section>
+
+    <section class="games" style="gap: 12px;">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Boards</p>
+          <h2>All Boards</h2>
+          <p class="hint">Board browsing is coming soon. Check back for a full library of games.</p>
+        </div>
+        <a class="btn ghost" href="create.html">Start a Board</a>
+      </div>
+
+      <div class="card highlight" style="display: grid; gap: 10px;">
+        <p class="hint">We are preparing the board directory. Once ready, you will be able to search, filter, and launch boards from here.</p>
+        <div class="cta-buttons" style="justify-content: flex-start;">
+          <a class="btn accent" href="create.html">Create Now</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div data-include="footer"></div>
+
+  <script src="js/layout.js"></script>
+</body>
+</html>

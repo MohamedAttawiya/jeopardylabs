@@ -6,19 +6,66 @@
   <title>AHWA.GAMES Platform</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-  <main class="landing landing-plain">
-    <section class="hero hero-centered">
-      <div class="logo-block" aria-hidden="true">
-        <img src="assets/logo/ahwagames.png" alt="AHWA.GAMES logo" class="logo-image">
+<body class="page-home">
+  <header class="site-header shell">
+    <div class="brand">
+      <img src="assets/logo/ahwagames.png" alt="AHWA.GAMES logo" class="brand-logo">
+      <div class="brand-text">
+        <p class="eyebrow">AHWA.GAMES</p>
+        <h1>World of Fun</h1>
       </div>
-      <p class="eyebrow">AHWA.GAMES</p>
-      <h2>One stop for every Ahwa game.</h2>
-      <p class="lede">Ahwa.games is the home for all Ahwa experiences. The Jeopardy-style workflow lives here alongside every other game on the platform.</p>
+    </div>
+    <nav class="nav">
+      <a class="nav-link active" href="/">Home</a>
+      <a class="nav-link" href="#all-games">All Games</a>
+      <a class="nav-link" href="mailto:hello@ahwa.games">Contact</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn ghost" href="browseboards.html">Browse Boards</a>
+      <a class="btn accent" href="create.html">Create Board</a>
+    </div>
+  </header>
 
-      <div class="cta-buttons">
-        <a class="btn accent" href="create.html">Open Jeopardy workflow</a>
-        <button class="ghost" type="button" aria-disabled="true">Browse games</button>
+  <main>
+    <section class="hero card shell">
+      <div class="hero-visual" aria-hidden="true">
+        <picture>
+          <source media="(max-width: 720px)" srcset="assets/banner/mobilebannerlanding.png">
+          <img src="assets/banner/pcbannerlanding.png" alt="Confetti and game banner" class="hero-image">
+        </picture>
+      </div>
+      <div class="hero-copy">
+        <div class="badge">Welcome</div>
+        <h2>Welcome to AHWA.GAMES — Your World of Fun!</h2>
+        <p class="lede">Discover every Ahwa experience in one place. Browse existing boards or create your own game in moments.</p>
+        <div class="cta-buttons">
+          <a class="btn accent" href="#all-games">Browse All Games</a>
+          <a class="btn ghost" href="create.html">Create New Board</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="games shell" id="all-games">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">All Games</p>
+          <h2>Choose Your Adventure</h2>
+          <p class="hint">Start with Boards to build or explore Jeopardy-style games.</p>
+        </div>
+        <a class="btn ghost" href="browseboards.html">Browse Boards</a>
+      </div>
+
+      <div class="game-grid">
+        <a class="game-card" href="browseboards.html">
+          <div class="game-icon">
+            <img src="assets/icons/jeopardylabsicon.png" alt="Boards icon">
+          </div>
+          <div class="game-meta">
+            <p class="eyebrow">Featured</p>
+            <h3>Boards</h3>
+            <p class="hint">Build and play custom Jeopardy-style boards.</p>
+          </div>
+        </a>
       </div>
     </section>
   </main>
