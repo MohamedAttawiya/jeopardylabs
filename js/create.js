@@ -46,6 +46,12 @@ if (screens.config && rowsInput && colsInput) {
     return Array.from({ length: rows }, (_, idx) => (idx + 1) * 100);
   }
 
+  function summarizeText(text) {
+    const clean = text.trim();
+    if (!clean) return '';
+    return clean.length > 80 ? `${clean.slice(0, 77)}…` : clean;
+  }
+
   function resetTimers() {
     if (previewTimer) {
       clearTimeout(previewTimer);
@@ -145,12 +151,38 @@ if (screens.config && rowsInput && colsInput) {
         openBtn.dataset.cellOpen = `${r}-${c}`;
         openBtn.textContent = `${pointsScheme[r]} pts`;
 
-        const status = document.createElement('p');
-        status.className = `cell-status ${isFilled ? 'filled' : ''}`;
-        status.textContent = isFilled ? 'Question and answer saved' : 'Add question and answer';
+        const preview = document.createElement('div');
+        preview.className = 'cell-preview';
+
+        const qLine = document.createElement('p');
+        qLine.className = 'cell-line';
+        const qLabel = document.createElement('span');
+        qLabel.className = 'label';
+        qLabel.textContent = 'Q';
+        const qText = document.createElement('span');
+        const qSummary = summarizeText(state.grid[r][c].q);
+        qText.textContent = qSummary || 'Add question';
+        if (!qSummary) qText.classList.add('empty');
+        qLine.appendChild(qLabel);
+        qLine.appendChild(qText);
+
+        const aLine = document.createElement('p');
+        aLine.className = 'cell-line';
+        const aLabel = document.createElement('span');
+        aLabel.className = 'label';
+        aLabel.textContent = 'A';
+        const aText = document.createElement('span');
+        const aSummary = summarizeText(state.grid[r][c].a);
+        aText.textContent = aSummary || 'Add answer';
+        if (!aSummary) aText.classList.add('empty');
+        aLine.appendChild(aLabel);
+        aLine.appendChild(aText);
+
+        preview.appendChild(qLine);
+        preview.appendChild(aLine);
 
         cell.appendChild(openBtn);
-        cell.appendChild(status);
+        cell.appendChild(preview);
         gridContainer.appendChild(cell);
       }
     }
