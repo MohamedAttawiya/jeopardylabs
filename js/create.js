@@ -11,6 +11,7 @@ const titleInput = document.getElementById('title');
 const languageInput = document.getElementById('language');
 const categoriesContainer = document.getElementById('categories-container');
 const gridContainer = document.getElementById('grid-container');
+const gridCategoryRow = document.getElementById('grid-category-row');
 const toGridBtn = document.getElementById('to-grid');
 const toPreviewBtn = document.getElementById('to-preview');
 const jsonOutput = document.getElementById('json-output');
@@ -116,42 +117,40 @@ if (screens.config && rowsInput && colsInput) {
   function renderGrid() {
     ensureGridState();
     gridContainer.innerHTML = '';
+    gridCategoryRow.innerHTML = '';
     const pointsScheme = generatePointsScheme(state.rows);
 
-    gridContainer.style.gridTemplateColumns = `repeat(${state.cols}, minmax(260px, 1fr))`;
+    const columnTemplate = `repeat(${state.cols}, minmax(150px, 1fr))`;
+    gridContainer.style.gridTemplateColumns = columnTemplate;
+    gridCategoryRow.style.gridTemplateColumns = columnTemplate;
+
+    state.categories.forEach((catName, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'category-chip';
+      chip.textContent = catName || `Category ${idx + 1}`;
+      gridCategoryRow.appendChild(chip);
+    });
 
     for (let r = 0; r < state.rows; r += 1) {
       for (let c = 0; c < state.cols; c += 1) {
         const cell = document.createElement('div');
-        cell.className = 'cell-card';
-
-        const head = document.createElement('div');
-        head.className = 'cell-head';
-        const catName = state.categories[c] || `Category ${c + 1}`;
-        head.innerHTML = `<span class="category">${catName}</span><span class="points">${pointsScheme[r]} pts</span>`;
-
-        const body = document.createElement('div');
-        body.className = 'cell-body';
+        const hasQuestion = Boolean(state.grid[r][c].q);
+        const hasAnswer = Boolean(state.grid[r][c].a);
+        const isFilled = hasQuestion && hasAnswer;
+        cell.className = `cell-card ${isFilled ? 'filled' : ''}`.trim();
 
         const openBtn = document.createElement('button');
         openBtn.type = 'button';
-        openBtn.className = 'accent cell-open';
+        openBtn.className = `cell-trigger ${isFilled ? 'filled' : 'empty'}`;
         openBtn.dataset.cellOpen = `${r}-${c}`;
-        openBtn.textContent = `${pointsScheme[r]} points`;
+        openBtn.textContent = `${pointsScheme[r]} pts`;
 
         const status = document.createElement('p');
-        const hasQuestion = Boolean(state.grid[r][c].q);
-        const hasAnswer = Boolean(state.grid[r][c].a);
-        status.className = `cell-status ${hasQuestion && hasAnswer ? 'filled' : ''}`;
-        status.textContent = hasQuestion || hasAnswer
-          ? (hasQuestion && hasAnswer ? 'Question and answer saved' : 'Incomplete entry')
-          : 'Click to add a question and answer';
+        status.className = `cell-status ${isFilled ? 'filled' : ''}`;
+        status.textContent = isFilled ? 'Question and answer saved' : 'Add question and answer';
 
-        body.appendChild(openBtn);
-        body.appendChild(status);
-
-        cell.appendChild(head);
-        cell.appendChild(body);
+        cell.appendChild(openBtn);
+        cell.appendChild(status);
         gridContainer.appendChild(cell);
       }
     }
