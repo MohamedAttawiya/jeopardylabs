@@ -6,32 +6,8 @@
   <title>Boards | AHWA.GAMES</title>
   <link rel="stylesheet" href="../../css/styles.css">
 </head>
-<body class="page-boards">
-  <header class="site-header">
-    <nav class="navbar" aria-label="Primary">
-      <a class="logo" href="/">
-        <img src="../../assets/logo/ahwagames.png" alt="ahwa.games logo">
-        <span class="wordmark">ahwa.games</span>
-      </a>
-
-      <input id="menu-toggle" class="menu-toggle" type="checkbox" aria-hidden="true">
-      <label for="menu-toggle" class="menu-icon" aria-label="Toggle navigation" role="button">
-        <span></span><span></span><span></span>
-      </label>
-
-      <ul class="nav-links">
-        <li><a href="/">Home</a></li>
-        <li><a class="is-active" href="/#featured-games">All Games</a></li>
-        <li><a href="#">About</a></li>
-        <li><a href="mailto:hello@ahwa.games">Contact</a></li>
-        <li class="nav-search">
-          <form action="/search" role="search">
-            <input type="search" name="q" placeholder="Search" aria-label="Search">
-          </form>
-        </li>
-      </ul>
-    </nav>
-  </header>
+<body class="page-boards" data-nav="boards">
+  <div data-include="header"></div>
 
   <main>
     <section class="boards-hero shell">

@@ -1,13 +1,25 @@
 <header class="site-header">
-  <div class="brand">
-    <img src="assets/logo/ahwagames.png" alt="AHWA.GAMES logo" class="brand-logo">
-    <div>
-      <p class="eyebrow">AHWA.GAMES</p>
-      <h1>Game Platform</h1>
+  <nav class="navbar" aria-label="Primary">
+    <a class="logo" href="/">
+      <img src="/assets/logo/ahwagames.png" alt="ahwa.games logo">
+    </a>
+
+    <input id="menu-toggle" class="menu-toggle" type="checkbox" aria-hidden="true">
+    <label for="menu-toggle" class="menu-icon" aria-label="Toggle navigation" role="button">
+      <span></span><span></span><span></span>
+    </label>
+
+    <ul class="nav-links">
+      <li><a href="/" data-nav="home">Home</a></li>
+      <li><a href="/#featured-games" data-nav="all-games">All Games</a></li>
+      <li><a href="#" data-nav="about">About</a></li>
+      <li><a href="mailto:hello@ahwa.games" data-nav="contact">Contact</a></li>
+    </ul>
+
+    <div class="nav-search">
+      <form action="/search" role="search">
+        <input type="search" name="q" placeholder="Search" aria-label="Search">
+      </form>
     </div>
-  </div>
-  <nav class="nav-actions">
-    <a class="btn ghost" href="#" aria-disabled="true">Browse games</a>
-    <a class="btn accent" href="create.html">Open Jeopardy workflow</a>
   </nav>
 </header>
