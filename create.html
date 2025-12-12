@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create a Board</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div data-include="header"></div>
+
+  <main>
+    <section id="config-screen" class="screen active">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Step 1</p>
+          <h2>Board configuration</h2>
+          <p class="lede">Set your grid size and name your categories. Slugs are handled by the backend.</p>
+        </div>
+        <div class="step-actions">
+          <button type="button" class="ghost" data-nav="landing">Back to landing</button>
+          <button type="button" class="accent" id="to-grid">Next</button>
+        </div>
+      </div>
+      <form id="config-form" class="panel-grid">
+        <label>
+          <span>Board title</span>
+          <input type="text" id="title" placeholder="E.g. Science &amp; History" required>
+        </label>
+        <label>
+          <span>Language</span>
+          <select id="language">
+            <option value="en">English (en)</option>
+            <option value="es">Spanish (es)</option>
+            <option value="fr">French (fr)</option>
+          </select>
+        </label>
+        <label>
+          <span>Rows</span>
+          <input type="number" id="rows" min="3" max="6" value="5">
+        </label>
+        <label>
+          <span>Columns</span>
+          <input type="number" id="columns" min="3" max="6" value="5">
+        </label>
+      </form>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Categories</h3>
+          <p class="hint">Add one category per column.</p>
+        </div>
+        <div id="categories-container" class="category-grid"></div>
+      </div>
+    </section>
+
+    <section id="grid-screen" class="screen">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Step 2</p>
+          <h2>Grid entries</h2>
+          <p class="lede">Questions on top, answers on the bottom. Points auto-fill per row.</p>
+        </div>
+        <div class="step-actions">
+          <button type="button" class="ghost" data-nav="config">Back</button>
+          <button type="button" class="accent" id="to-preview">Next</button>
+        </div>
+      </div>
+      <div class="grid-wrapper">
+        <div id="grid-container" class="grid-cards" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="preview-screen" class="screen">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Step 3</p>
+          <h2>JSON preview</h2>
+          <p class="lede">This view will return to the landing screen after 10 seconds.</p>
+        </div>
+        <div class="step-actions">
+          <button type="button" class="ghost" data-nav="landing">Skip timer</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Payload</h3>
+          <p class="hint">Copy or download the JSON if you need it.</p>
+          <div class="inline-actions">
+            <button type="button" class="ghost" id="copy-json">Copy</button>
+            <button type="button" class="accent" id="download-json">Download</button>
+          </div>
+        </div>
+        <textarea id="json-output" readonly aria-label="Generated JSON"></textarea>
+        <p class="hint" id="timer-note"></p>
+      </div>
+    </section>
+  </main>
+
+  <div data-include="footer"></div>
+
+  <script src="js/layout.js"></script>
+  <script src="js/create.js"></script>
+</body>
+</html>
