@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>egBoards | Board Detail</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div data-include="header"></div>
+
+  <main class="detail-shell">
+    <section class="board-hero">
+      <div class="surface">
+        <p class="eyebrow">Board detail</p>
+        <h2>World Explorers</h2>
+        <div class="board-meta">
+          <span>Owner: <strong>Alex Chen</strong></span>
+          <span>Last updated: <strong>Aug 12, 2024</strong></span>
+          <span class="chip">Language: en</span>
+          <span class="chip">Public</span>
+        </div>
+        <div class="fab-row" aria-label="Board actions">
+          <button type="button" class="btn accent fab">
+            <span class="material-icon">play_arrow</span>
+            Go live
+          </button>
+          <button type="button" class="btn ghost fab">
+            <span class="material-icon">edit</span>
+            Edit board
+          </button>
+        </div>
+      </div>
+      <div class="surface">
+        <div class="board-meta">
+          <span class="chip">v1.4</span>
+          <span>52 plays</span>
+          <span>Avg accuracy 68%</span>
+        </div>
+        <p class="lede">A calm overview for hosts: quick stats, versioning, and ready-to-run controls.</p>
+        <div class="stat-block">
+          <span>Recommended devices</span>
+          <span class="chip">Desktop · Tablet</span>
+        </div>
+        <div class="stat-block">
+          <span>Categories</span>
+          <span class="chip" id="category-count">5</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Preview</p>
+          <h2>5×5 grid</h2>
+          <p class="lede">Hover for emphasis. Tiles stay light, elevated, and neatly aligned.</p>
+        </div>
+      </div>
+      <div id="grid-preview" class="grid-preview" aria-label="Board grid preview"></div>
+    </section>
+
+    <section class="detail-layout">
+      <div class="surface">
+        <div class="tab-row" role="tablist" aria-label="Board detail tabs">
+          <button class="tab-chip active" role="tab" aria-selected="true" data-tab="questions">Questions</button>
+          <button class="tab-chip" role="tab" aria-selected="false" data-tab="stats">Stats</button>
+          <button class="tab-chip" role="tab" aria-selected="false" data-tab="reactions">Reactions</button>
+        </div>
+        <div id="tab-panels">
+          <div class="tab-panel" data-panel="questions">
+            <p class="lede">See how each clue is distributed. Keep difficulty balanced and make sure every category feels coherent.</p>
+            <ul class="feature-list">
+              <li>25 total clues, 5 categories × 5 questions.</li>
+              <li>Auto-graded points: 100 → 500 per row.</li>
+              <li>Preview snippets update as teams react.</li>
+            </ul>
+          </div>
+          <div class="tab-panel" data-panel="stats" hidden>
+            <p class="lede">Performance snapshots across recent plays.</p>
+            <ul class="feature-list">
+              <li>Fastest correct: 3.2s on “Voyages”.</li>
+              <li>Most missed: “Polar Expeditions” for 500.</li>
+              <li>Average accuracy: 68% with 12 active rooms.</li>
+            </ul>
+          </div>
+          <div class="tab-panel" data-panel="reactions" hidden>
+            <p class="lede">Player sentiment in a glance.</p>
+            <ul class="feature-list">
+              <li>Top-liked clue: “Space Race” for 400.</li>
+              <li>Longest discussion: “Silk Road Cities” for 300.</li>
+              <li>Flagged items: 0 pending reviews.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <aside class="surface side-panel" aria-label="Board metadata">
+        <div class="stat-block">
+          <span>Likes</span>
+          <strong>124</strong>
+        </div>
+        <div class="stat-block">
+          <span>Dislikes</span>
+          <strong>9</strong>
+        </div>
+        <div class="stat-block">
+          <span>Version</span>
+          <strong>1.4.0</strong>
+        </div>
+        <button type="button" class="btn accent">Share board</button>
+      </aside>
+    </section>
+  </main>
+
+  <div data-include="footer"></div>
+
+  <script src="js/layout.js"></script>
+  <script src="js/detail.js"></script>
+</body>
+</html>
