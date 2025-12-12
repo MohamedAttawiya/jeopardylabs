@@ -70,7 +70,12 @@ h3 { margin: 0; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; margin: 0; }
 .lede { color: var(--muted); margin: 6px 0 0; max-width: 720px; }
 
-.nav-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.nav-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
 
 button, .btn {
   font: inherit;
@@ -318,6 +323,7 @@ main {
   gap: 12px;
   justify-self: end;
   grid-column: 4;
+  flex-wrap: nowrap;
 }
 
 .search-toggle {
