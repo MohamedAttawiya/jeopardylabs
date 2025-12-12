@@ -322,7 +322,17 @@ main { display: flex; flex-direction: column; gap: 18px; }
   display: block;
 }
 .hero-image.fitted { object-fit: contain; max-height: 360px; }
-.hero-cta { display: grid; justify-items: center; }
+.hero-cta-inline {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  pointer-events: none;
+}
+.hero-cta-inline .btn { pointer-events: auto; }
 
 .boards-hero { padding: 12px 0 6px; }
 .boards-hero__body {
@@ -369,7 +379,12 @@ main { display: flex; flex-direction: column; gap: 18px; }
   gap: 10px;
 }
 
-.game-gallery.single { max-width: 420px; margin: 0 auto; }
+.game-gallery.single {
+  max-width: none;
+  margin: 0;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  justify-items: start;
+}
 
 
 .game-card {
