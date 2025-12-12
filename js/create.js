@@ -17,6 +17,7 @@ const jsonOutput = document.getElementById('json-output');
 const timerNote = document.getElementById('timer-note');
 const copyJsonBtn = document.getElementById('copy-json');
 const downloadBtn = document.getElementById('download-json');
+const configError = document.getElementById('config-error');
 
 if (screens.config && rowsInput && colsInput) {
   let previewTimer = null;
@@ -37,10 +38,6 @@ if (screens.config && rowsInput && colsInput) {
     return Array.from({ length: rows }, (_, idx) => (idx + 1) * 100);
   }
 
-  function goToLanding() {
-    window.location.href = 'index.html';
-  }
-
   function resetTimers() {
     if (previewTimer) {
       clearTimeout(previewTimer);
@@ -55,12 +52,6 @@ if (screens.config && rowsInput && colsInput) {
 
   function showScreen(key) {
     resetTimers();
-
-    if (key === 'landing') {
-      goToLanding();
-      return;
-    }
-
     Object.entries(screens).forEach(([name, el]) => {
       el.classList.toggle('active', name === key);
     });
@@ -82,7 +73,7 @@ if (screens.config && rowsInput && colsInput) {
     }, 1000);
 
     previewTimer = setTimeout(() => {
-      goToLanding();
+      window.location.href = 'index.html';
     }, 10000);
   }
 
@@ -107,6 +98,7 @@ if (screens.config && rowsInput && colsInput) {
       nameInput.placeholder = `Topic ${i + 1}`;
       nameInput.value = state.categories[i] || '';
       nameInput.dataset.category = i;
+      nameInput.required = true;
       nameLabel.appendChild(nameInput);
 
       wrapper.appendChild(nameLabel);
@@ -118,6 +110,8 @@ if (screens.config && rowsInput && colsInput) {
     ensureGridState();
     gridContainer.innerHTML = '';
     const pointsScheme = generatePointsScheme(state.rows);
+
+    gridContainer.style.gridTemplateColumns = `repeat(${state.cols}, minmax(260px, 1fr))`;
 
     for (let r = 0; r < state.rows; r += 1) {
       for (let c = 0; c < state.cols; c += 1) {
@@ -164,6 +158,27 @@ if (screens.config && rowsInput && colsInput) {
       input.value.trim() || `Category ${idx + 1}`
     );
     ensureGridState();
+  }
+
+  function isConfigComplete() {
+    const title = titleInput.value.trim();
+    const rows = clampSize(rowsInput.value);
+    const cols = clampSize(colsInput.value);
+    const categoryInputs = categoriesContainer.querySelectorAll('[data-category]');
+    const filledCategories =
+      categoryInputs.length === cols && Array.from(categoryInputs).every((input) => input.value.trim().length > 0);
+
+    return Boolean(title && rows && cols && filledCategories);
+  }
+
+  function syncConfigValidity() {
+    const valid = isConfigComplete();
+    toGridBtn.disabled = !valid;
+    if (!valid) {
+      configError.textContent = 'Please complete the title, grid size, and every category before continuing.';
+    } else {
+      configError.textContent = '';
+    }
   }
 
   function updateGridStateFromInputs() {
@@ -214,6 +229,10 @@ if (screens.config && rowsInput && colsInput) {
   }
 
   function goToGrid() {
+    if (!isConfigComplete()) {
+      syncConfigValidity();
+      return;
+    }
     updateStateFromConfig();
     renderGrid();
     showScreen('grid');
@@ -240,16 +259,21 @@ if (screens.config && rowsInput && colsInput) {
       state.rows = clampSize(rowsInput.value);
       rowsInput.value = state.rows;
       ensureGridState();
+      syncConfigValidity();
     });
 
     colsInput.addEventListener('change', () => {
       state.cols = clampSize(colsInput.value);
       colsInput.value = state.cols;
       createCategoryInputs(state.cols);
+      syncConfigValidity();
     });
+
+    [titleInput, languageInput].forEach((input) => input.addEventListener('input', syncConfigValidity));
 
     categoriesContainer.addEventListener('input', () => {
       state.categories = Array.from(categoriesContainer.querySelectorAll('[data-category]')).map((input) => input.value);
+      syncConfigValidity();
     });
 
     gridContainer.addEventListener('input', () => {
@@ -265,6 +289,7 @@ if (screens.config && rowsInput && colsInput) {
   function init() {
     initCategories();
     ensureGridState();
+    syncConfigValidity();
     bindEvents();
   }
 

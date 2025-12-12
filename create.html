@@ -17,41 +17,51 @@
           <h2>Board configuration</h2>
           <p class="lede">Set your grid size and name your categories. Slugs are handled by the backend.</p>
         </div>
-        <div class="step-actions">
-          <button type="button" class="ghost" data-nav="landing">Back to landing</button>
-          <button type="button" class="accent" id="to-grid">Next</button>
+        <div class="step-actions solo">
+          <button type="button" class="accent" id="to-grid" disabled>Next</button>
         </div>
       </div>
-      <form id="config-form" class="panel-grid">
-        <label>
-          <span>Board title</span>
-          <input type="text" id="title" placeholder="E.g. Science &amp; History" required>
-        </label>
-        <label>
-          <span>Language</span>
-          <select id="language">
-            <option value="en">English (en)</option>
-            <option value="es">Spanish (es)</option>
-            <option value="fr">French (fr)</option>
-          </select>
-        </label>
-        <label>
-          <span>Rows</span>
-          <input type="number" id="rows" min="3" max="6" value="5">
-        </label>
-        <label>
-          <span>Columns</span>
-          <input type="number" id="columns" min="3" max="6" value="5">
-        </label>
+
+      <form id="config-form" class="config-form">
+        <div class="title-row">
+          <label class="title-field">
+            <span>Board title</span>
+            <input type="text" id="title" placeholder="E.g. Science &amp; History" required>
+          </label>
+        </div>
+
+        <div class="size-row">
+          <label class="size-field">
+            <span># of Categories</span>
+            <input type="number" id="columns" min="3" max="6" value="5" aria-label="Number of categories">
+          </label>
+          <span class="size-multiply" aria-hidden="true">×</span>
+          <label class="size-field">
+            <span># of Questions per Category</span>
+            <input type="number" id="rows" min="3" max="6" value="5" aria-label="Questions per category">
+          </label>
+        </div>
+
+        <div class="language-row">
+          <label>
+            <span>Language</span>
+            <select id="language">
+              <option value="en">English (en)</option>
+              <option value="es">Spanish (es)</option>
+              <option value="fr">French (fr)</option>
+            </select>
+          </label>
+        </div>
       </form>
 
-      <div class="panel">
+      <div class="panel categories-panel">
         <div class="panel-head">
           <h3>Categories</h3>
-          <p class="hint">Add one category per column.</p>
+          <p class="hint">Add one category per column. All are required.</p>
         </div>
         <div id="categories-container" class="category-grid"></div>
       </div>
+      <p class="error" id="config-error" role="alert" aria-live="polite"></p>
     </section>
 
     <section id="grid-screen" class="screen">
@@ -77,9 +87,6 @@
           <p class="eyebrow">Step 3</p>
           <h2>JSON preview</h2>
           <p class="lede">This view will return to the landing screen after 10 seconds.</p>
-        </div>
-        <div class="step-actions">
-          <button type="button" class="ghost" data-nav="landing">Skip timer</button>
         </div>
       </div>
       <div class="panel">
