@@ -5,9 +5,6 @@
     </a>
 
     <input id="menu-toggle" class="menu-toggle" type="checkbox" aria-hidden="true">
-    <label for="menu-toggle" class="menu-icon" aria-label="Toggle navigation" role="button">
-      <span></span><span></span><span></span>
-    </label>
 
     <ul class="nav-links">
       <li><a href="/" data-nav="home">Home</a></li>
@@ -16,10 +13,23 @@
       <li><a href="mailto:hello@ahwa.games" data-nav="contact">Contact</a></li>
     </ul>
 
-    <div class="nav-search">
+    <div class="nav-search" id="header-search">
       <form action="/search" role="search">
         <input type="search" name="q" placeholder="Search" aria-label="Search">
       </form>
+    </div>
+
+    <div class="nav-actions">
+      <button class="search-toggle" type="button" aria-expanded="false" aria-controls="header-search">
+        <span class="sr-only">Toggle search</span>
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
+        </svg>
+      </button>
+      <label for="menu-toggle" class="menu-icon" aria-label="Toggle navigation" role="button">
+        <span></span><span></span><span></span>
+      </label>
     </div>
   </nav>
 </header>
