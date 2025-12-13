@@ -71,6 +71,7 @@
     const statusSelect = document.getElementById('filter-status');
     const langSelect = document.getElementById('filter-lang');
     const categoryContainer = document.getElementById('filter-category');
+    const categoryDropdown = document.querySelector('.category-dropdown');
     const categoryToggle = document.getElementById('category-toggle');
 
     let state = {
@@ -327,20 +328,28 @@
       }
     }
 
+    let categoryOpen = false;
+
     function isCategoryOpen() {
-      return categoryContainer && !categoryContainer.hasAttribute('hidden');
+      return categoryOpen;
     }
 
     function setCategoryDropdown(open) {
       if (!categoryContainer || !categoryToggle) return;
-      categoryContainer.hidden = !open;
-      categoryToggle.setAttribute('aria-expanded', String(open));
-      categoryContainer.classList.toggle('is-open', open);
+      categoryOpen = Boolean(open);
+      categoryContainer.hidden = !categoryOpen;
+      categoryToggle.setAttribute('aria-expanded', String(categoryOpen));
+      categoryContainer.classList.toggle('is-open', categoryOpen);
+      categoryDropdown?.classList.toggle('is-open', categoryOpen);
     }
 
     function toggleCategoryDropdown(forceState) {
-      const nextOpen = typeof forceState === 'boolean' ? forceState : !isCategoryOpen();
+      const nextOpen = typeof forceState === 'boolean' ? forceState : !categoryOpen;
       setCategoryDropdown(nextOpen);
+    }
+
+    function closeCategoryDropdown() {
+      setCategoryDropdown(false);
     }
 
     function populateFiltersFromQuery() {
@@ -383,19 +392,24 @@
       state = { ...state, ...getFiltersFromForm(), page: 1 };
       updateCategoryLabel();
       updateUrl();
+      closeCategoryDropdown();
       loadBoards();
     }
 
     function handleDocumentClick(event) {
       if (!categoryContainer || !categoryToggle) return;
-      if (isCategoryOpen() && !categoryContainer.contains(event.target) && !categoryToggle.contains(event.target)) {
-        toggleCategoryDropdown(false);
+      if (
+        categoryOpen &&
+        !categoryContainer.contains(event.target) &&
+        !categoryToggle.contains(event.target)
+      ) {
+        closeCategoryDropdown();
       }
     }
 
     function handleKeydown(event) {
       if (event.key === 'Escape' && isCategoryOpen()) {
-        toggleCategoryDropdown(false);
+        closeCategoryDropdown();
         categoryToggle?.focus();
       }
     }
@@ -454,8 +468,14 @@
         filtersForm.addEventListener('change', handleFilterChange);
       }
       if (categoryToggle) {
-        categoryToggle.addEventListener('click', () => toggleCategoryDropdown());
-        document.addEventListener('click', handleDocumentClick);
+        categoryToggle.addEventListener('click', (event) => {
+          event.stopPropagation();
+          toggleCategoryDropdown();
+        });
+        if (categoryContainer) {
+          categoryContainer.addEventListener('click', (event) => event.stopPropagation());
+        }
+        document.addEventListener('click', handleDocumentClick, true);
         document.addEventListener('keydown', handleKeydown);
       }
       setCategoryDropdown(false);
