@@ -10,18 +10,6 @@
   <div data-include="header"></div>
 
   <main>
-    <section class="boards-hero shell">
-      <div class="boards-hero__body">
-        <div class="badge">Boards</div>
-        <h1>Browse Boards</h1>
-        <p class="lede">Jump into community-made boards. New sets are added regularly—find something fun to play or create your own.</p>
-        <div class="cta-buttons">
-          <a class="btn primary" href="../../create.html">Create Board</a>
-          <a class="btn ghost" href="/">Back Home</a>
-        </div>
-      </div>
-    </section>
-
     <section class="games shell boards-browser">
       <div class="section-head minimal">
         <div>
@@ -339,11 +327,20 @@
       }
     }
 
-    function toggleCategoryDropdown(forceState) {
+    function isCategoryOpen() {
+      return categoryContainer && !categoryContainer.hasAttribute('hidden');
+    }
+
+    function setCategoryDropdown(open) {
       if (!categoryContainer || !categoryToggle) return;
-      const isOpen = forceState ?? categoryContainer.hidden;
-      categoryContainer.hidden = !isOpen;
-      categoryToggle.setAttribute('aria-expanded', String(isOpen));
+      categoryContainer.hidden = !open;
+      categoryToggle.setAttribute('aria-expanded', String(open));
+      categoryContainer.classList.toggle('is-open', open);
+    }
+
+    function toggleCategoryDropdown(forceState) {
+      const nextOpen = typeof forceState === 'boolean' ? forceState : !isCategoryOpen();
+      setCategoryDropdown(nextOpen);
     }
 
     function populateFiltersFromQuery() {
@@ -391,8 +388,15 @@
 
     function handleDocumentClick(event) {
       if (!categoryContainer || !categoryToggle) return;
-      if (!categoryContainer.hidden && !categoryContainer.contains(event.target) && !categoryToggle.contains(event.target)) {
+      if (isCategoryOpen() && !categoryContainer.contains(event.target) && !categoryToggle.contains(event.target)) {
         toggleCategoryDropdown(false);
+      }
+    }
+
+    function handleKeydown(event) {
+      if (event.key === 'Escape' && isCategoryOpen()) {
+        toggleCategoryDropdown(false);
+        categoryToggle?.focus();
       }
     }
 
@@ -452,7 +456,9 @@
       if (categoryToggle) {
         categoryToggle.addEventListener('click', () => toggleCategoryDropdown());
         document.addEventListener('click', handleDocumentClick);
+        document.addEventListener('keydown', handleKeydown);
       }
+      setCategoryDropdown(false);
       updateCategoryLabel();
       loadBoards();
     }
