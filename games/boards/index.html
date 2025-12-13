@@ -14,7 +14,7 @@
       <div class="boards-hero__body">
         <div class="badge">Boards</div>
         <h1>Browse Boards</h1>
-        <p class="lede">Community-made game boards will live here soon. Start a fresh one while we prep the directory.</p>
+        <p class="lede">Jump into community-made boards. New sets are added regularly—find something fun to play or create your own.</p>
         <div class="cta-buttons">
           <a class="btn primary" href="../../create.html">Create Board</a>
           <a class="btn ghost" href="/">Back Home</a>
@@ -22,23 +22,27 @@
       </div>
     </section>
 
-    <section class="games shell" style="gap: 10px;">
+    <section class="games shell boards-browser">
       <div class="section-head minimal">
-        <h2>All Boards</h2>
-        <p class="hint">A full directory is coming soon. Check back for every playable board.</p>
-      </div>
-
-      <div class="card highlight" style="display: grid; gap: 10px;">
-        <p class="hint">We are preparing the board library. You will be able to search, filter, and launch boards from this page.</p>
-        <div class="cta-buttons" style="justify-content: flex-start;">
-          <a class="btn primary" href="../../create.html">Create a Board</a>
+        <div>
+          <h2>All Boards</h2>
+          <p class="hint">Browse public boards and discover new quizzes from the community.</p>
+        </div>
+        <div class="cta-buttons">
+          <a class="btn primary" href="../../create.html">Create Board</a>
         </div>
       </div>
+
+      <div id="boards-status" class="boards-status hint">Loading boards…</div>
+      <div id="boards-grid" class="boards-grid" aria-live="polite"></div>
+
+      <div id="boards-pagination" class="boards-pagination" aria-live="polite"></div>
     </section>
   </main>
 
   <div data-include="footer"></div>
 
   <script src="../../js/layout.js"></script>
+  <script src="../../js/browse-boards.js"></script>
 </body>
 </html>
