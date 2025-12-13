@@ -434,12 +434,20 @@ main {
 
 .boards-browser { gap: 16px; }
 .boards-status { margin: 4px 0; }
-.boards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
-.board-card { display: grid; gap: 8px; align-content: start; padding: 14px; }
+.boards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.board-card {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 12px;
+  background: linear-gradient(160deg, #f8fafc, #eef2ff);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+}
 .board-card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.board-card__title { margin: 0; font-size: 1rem; color: #0f172a; line-height: 1.2; }
+.board-card__title { margin: 0; font-size: 0.98rem; color: #0f172a; line-height: 1.25; }
 .board-card__chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.board-card__meta { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; margin: 0; color: var(--muted); font-size: 0.9rem; }
+.board-card__meta { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; margin: 0; color: var(--muted); font-size: 0.88rem; }
 .board-card__meta dt { font-weight: 700; }
 .board-card__meta dd { margin: 0; }
 .boards-pagination { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
@@ -454,6 +462,29 @@ main {
 .filter-field select { padding: 8px 10px; border-radius: 10px; border: 1px solid #e2e8f0; font: inherit; background: #fff; }
 .filter-field .label { font-size: 0.92rem; color: var(--muted); font-weight: 700; }
 .category-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.category-dropdown { position: relative; }
+.category-dropdown__header { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.category-dropdown__toggle {
+  justify-self: flex-end;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  padding: 8px 10px;
+  width: 100%;
+  text-align: left;
+}
+.category-dropdown__panel {
+  position: absolute;
+  inset: auto 0 0 0;
+  transform: translateY(calc(100% + 6px));
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  z-index: 10;
+}
 .chip-checkbox { gap: 8px; cursor: pointer; }
 .chip-checkbox input { accent-color: #1e3a8a; }
 

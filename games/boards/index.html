@@ -51,12 +51,16 @@
               <option value="ar">Arabic</option>
             </select>
           </label>
+          <div class="filter-field category-dropdown">
+            <div class="category-dropdown__header">
+              <span class="label">Categories</span>
+              <button type="button" id="category-toggle" class="category-dropdown__toggle" aria-expanded="false" aria-controls="filter-category">
+                Choose categories
+              </button>
+            </div>
+            <div id="filter-category" class="category-options category-dropdown__panel" aria-live="polite" hidden></div>
+          </div>
         </div>
-
-        <fieldset class="filter-field">
-          <legend class="label">Categories</legend>
-          <div id="filter-category" class="category-options" aria-live="polite"></div>
-        </fieldset>
       </form>
 
       <div id="boards-status" class="boards-status hint">Loading boards…</div>
@@ -79,6 +83,7 @@
     const statusSelect = document.getElementById('filter-status');
     const langSelect = document.getElementById('filter-lang');
     const categoryContainer = document.getElementById('filter-category');
+    const categoryToggle = document.getElementById('category-toggle');
 
     let state = {
       page: 1,
@@ -280,7 +285,7 @@
     }
 
     function ensureCategoryOptions(items = []) {
-      if (!categoryContainer || categoryContainer.dataset.populated === 'true') return;
+      if (!categoryContainer) return;
 
       categoryContainer.innerHTML = '';
 
@@ -322,7 +327,23 @@
         categoryContainer.appendChild(label);
       });
 
-      categoryContainer.dataset.populated = 'true';
+      updateCategoryLabel();
+    }
+
+    function updateCategoryLabel() {
+      if (!categoryToggle) return;
+      if (!state.categories.length) {
+        categoryToggle.textContent = 'All categories';
+      } else {
+        categoryToggle.textContent = `${state.categories.length} categor${state.categories.length === 1 ? 'y' : 'ies'} selected`;
+      }
+    }
+
+    function toggleCategoryDropdown(forceState) {
+      if (!categoryContainer || !categoryToggle) return;
+      const isOpen = forceState ?? categoryContainer.hidden;
+      categoryContainer.hidden = !isOpen;
+      categoryToggle.setAttribute('aria-expanded', String(isOpen));
     }
 
     function populateFiltersFromQuery() {
@@ -363,8 +384,16 @@
     function handleFilterChange(event) {
       event.preventDefault();
       state = { ...state, ...getFiltersFromForm(), page: 1 };
+      updateCategoryLabel();
       updateUrl();
       loadBoards();
+    }
+
+    function handleDocumentClick(event) {
+      if (!categoryContainer || !categoryToggle) return;
+      if (!categoryContainer.hidden && !categoryContainer.contains(event.target) && !categoryToggle.contains(event.target)) {
+        toggleCategoryDropdown(false);
+      }
     }
 
     function handlePageChange(page) {
@@ -420,6 +449,11 @@
         filtersForm.addEventListener('submit', handleFilterChange);
         filtersForm.addEventListener('change', handleFilterChange);
       }
+      if (categoryToggle) {
+        categoryToggle.addEventListener('click', () => toggleCategoryDropdown());
+        document.addEventListener('click', handleDocumentClick);
+      }
+      updateCategoryLabel();
       loadBoards();
     }
 
