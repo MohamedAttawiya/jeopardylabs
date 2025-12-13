@@ -328,20 +328,23 @@
       }
     }
 
+    let categoryOpen = false;
+
     function isCategoryOpen() {
-      return categoryContainer && !categoryContainer.hasAttribute('hidden');
+      return categoryOpen;
     }
 
     function setCategoryDropdown(open) {
       if (!categoryContainer || !categoryToggle) return;
-      categoryContainer.hidden = !open;
-      categoryToggle.setAttribute('aria-expanded', String(open));
-      categoryContainer.classList.toggle('is-open', open);
-      categoryDropdown?.classList.toggle('is-open', open);
+      categoryOpen = Boolean(open);
+      categoryContainer.hidden = !categoryOpen;
+      categoryToggle.setAttribute('aria-expanded', String(categoryOpen));
+      categoryContainer.classList.toggle('is-open', categoryOpen);
+      categoryDropdown?.classList.toggle('is-open', categoryOpen);
     }
 
     function toggleCategoryDropdown(forceState) {
-      const nextOpen = typeof forceState === 'boolean' ? forceState : !isCategoryOpen();
+      const nextOpen = typeof forceState === 'boolean' ? forceState : !categoryOpen;
       setCategoryDropdown(nextOpen);
     }
 
@@ -395,7 +398,11 @@
 
     function handleDocumentClick(event) {
       if (!categoryContainer || !categoryToggle) return;
-      if (isCategoryOpen() && !categoryContainer.contains(event.target) && !categoryToggle.contains(event.target)) {
+      if (
+        categoryOpen &&
+        !categoryContainer.contains(event.target) &&
+        !categoryToggle.contains(event.target)
+      ) {
         closeCategoryDropdown();
       }
     }
@@ -461,8 +468,14 @@
         filtersForm.addEventListener('change', handleFilterChange);
       }
       if (categoryToggle) {
-        categoryToggle.addEventListener('click', () => toggleCategoryDropdown());
-        document.addEventListener('click', handleDocumentClick);
+        categoryToggle.addEventListener('click', (event) => {
+          event.stopPropagation();
+          toggleCategoryDropdown();
+        });
+        if (categoryContainer) {
+          categoryContainer.addEventListener('click', (event) => event.stopPropagation());
+        }
+        document.addEventListener('click', handleDocumentClick, true);
         document.addEventListener('keydown', handleKeydown);
       }
       setCategoryDropdown(false);
