@@ -434,16 +434,28 @@ main {
 
 .boards-browser { gap: 16px; }
 .boards-status { margin: 4px 0; }
-.boards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-.board-card { display: grid; gap: 10px; align-content: start; }
+.boards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.board-card { display: grid; gap: 8px; align-content: start; padding: 14px; }
 .board-card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.board-card__title { margin: 0; font-size: 1.05rem; color: #0f172a; }
+.board-card__title { margin: 0; font-size: 1rem; color: #0f172a; line-height: 1.2; }
 .board-card__chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.board-card__meta { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0; color: var(--muted); }
+.board-card__meta { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; margin: 0; color: var(--muted); font-size: 0.9rem; }
 .board-card__meta dt { font-weight: 700; }
 .board-card__meta dd { margin: 0; }
-.boards-pagination { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-top: 4px; }
-.boards-pagination__summary { color: var(--muted); font-weight: 700; }
+.boards-pagination { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+.pagination__btn { border-radius: 10px; padding: 8px 12px; background: #e5e7eb; border: 1px solid #d4d8de; color: #0f172a; min-width: 40px; }
+.pagination__btn:hover { background: #dfe3ea; }
+.pagination__btn.is-active { background: #1e3a8a; color: #f8fafc; border-color: #1e3a8a; cursor: default; box-shadow: none; }
+.pagination__btn:focus-visible { outline: 3px solid rgba(30, 58, 138, 0.2); outline-offset: 2px; }
+.pagination__ellipsis { padding: 8px 10px; color: var(--muted); }
+.boards-filters { display: grid; gap: 12px; }
+.filters-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.filter-field { display: grid; gap: 6px; font-weight: 700; color: #0f172a; }
+.filter-field select { padding: 8px 10px; border-radius: 10px; border: 1px solid #e2e8f0; font: inherit; background: #fff; }
+.filter-field .label { font-size: 0.92rem; color: var(--muted); font-weight: 700; }
+.category-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-checkbox { gap: 8px; cursor: pointer; }
+.chip-checkbox input { accent-color: #1e3a8a; }
 
 .chip {
   display: inline-flex;
