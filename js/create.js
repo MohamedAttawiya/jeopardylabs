@@ -4,7 +4,7 @@ const screens = {
   preview: document.getElementById('preview-screen'),
 };
 
-const navButtons = document.querySelectorAll('[data-nav]');
+const navButtons = document.querySelectorAll('main [data-nav]');
 const rowsInput = document.getElementById('rows');
 const colsInput = document.getElementById('columns');
 const titleInput = document.getElementById('title');
@@ -27,7 +27,7 @@ const modalQuestion = document.getElementById('modal-question');
 const modalAnswer = document.getElementById('modal-answer');
 const modalSave = document.getElementById('modal-save');
 
-if (screens.config && rowsInput && colsInput) {
+if (screens.config && rowsInput && colsInput && titleInput && languageInput && categoriesContainer && gridContainer && gridCategoryRow && toGridBtn && toPreviewBtn && jsonOutput && timerNote && copyJsonBtn && downloadBtn && configError && gridError && modal && modalTitle && modalCategory && modalQuestion && modalAnswer) {
   let previewTimer = null;
   let countdownInterval = null;
   let activeCell = null;
@@ -71,6 +71,7 @@ if (screens.config && rowsInput && colsInput) {
   }
 
   function showScreen(key) {
+    if (!screens[key]) return;
     resetTimers();
     Object.entries(screens).forEach(([name, el]) => {
       el.classList.toggle('active', name === key);
@@ -338,8 +339,11 @@ if (screens.config && rowsInput && colsInput) {
 
   function bindEvents() {
     navButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        showScreen(btn.dataset.nav);
+      btn.addEventListener('click', (event) => {
+        const targetScreen = btn.dataset.nav;
+        if (!screens[targetScreen]) return;
+        event.preventDefault();
+        showScreen(targetScreen);
       });
     });
 
