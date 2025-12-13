@@ -866,3 +866,15 @@ textarea { resize: vertical; }
   button { width: 100%; text-align: center; }
   .top-actions, .cta-buttons, .step-actions { width: 100%; }
 }
+/* Default closed */
+.dropdown .dropdown-menu { display: none !important; }
+
+/* Open only via JS-controlled state */
+.dropdown.is-open > .dropdown-menu { display: block !important; }
+
+/* Kill hover-open behavior if present anywhere */
+.dropdown:hover > .dropdown-menu { display: none !important; }
+
+/* If markup uses <details>/<summary> for dropdowns, hide panel unless JS adds .is-open */
+details.dropdown .dropdown-menu { display: none !important; }
+details.dropdown.is-open .dropdown-menu { display: block !important; }
