@@ -4,505 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Boards | Play</title>
-
-  <!-- Keep your existing global look -->
   <link rel="stylesheet" href="/css/styles.css" />
-
-  <!-- Minimal “make it work” CSS just for the play screen -->
-  <style>
-    :root {
-      --teams-bar-height: 122px;
-      --board-headroom: clamp(120px, 24vh, 220px);
-    }
-
-    /* --- Layout shell --- */
-    body, html {
-      min-height: 100%;
-    }
-
-    main.shell {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 16px 16px calc(var(--teams-bar-height) + 12px);
-      min-height: calc(100vh - var(--teams-bar-height));
-      height: calc(100vh - var(--teams-bar-height));
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .play-top {
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      margin-bottom: 4px;
-    }
-
-    .board-meta {
-      min-width: 280px;
-    }
-
-    .board-meta .eyebrow {
-      margin: 0;
-    }
-
-    .board-meta h2 {
-      margin: 6px 0 4px;
-    }
-
-    .board-meta .lede {
-      margin: 0;
-      opacity: 0.9;
-    }
-
-    .host-tools {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: flex-end;
-    }
-
-    .host-tools .pill {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      padding: 8px 10px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-
-    .host-tools .pill label {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      font-size: 14px;
-      opacity: 0.9;
-      margin: 0;
-    }
-
-    .host-tools input[type="checkbox"] {
-      transform: translateY(1px);
-    }
-
-    /* --- Gameplay + board --- */
-    .gameplay {
-      position: relative;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .gameplay.blurred {
-      filter: blur(6px);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .board-area {
-      flex: 1;
-      min-height: 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-    }
-
-    .board-grid {
-      display: grid;
-      gap: 1px;
-      background: rgba(255,255,255,0.12);
-      flex: 1;
-      height: 100%;
-      grid-auto-rows: 1fr;
-    }
-
-    .cell {
-      background: rgba(10, 14, 30, 0.85);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 10px;
-      user-select: none;
-    }
-
-    .cell.category {
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      font-size: clamp(12px, 2vw, 16px);
-      background: rgba(21, 27, 75, 0.95);
-    }
-
-    .cell.clue {
-      cursor: pointer;
-      font-weight: 800;
-      font-size: clamp(22px, 4vw, 38px);
-      min-height: 64px;
-    }
-
-    .cell.clue.used {
-      opacity: 0.35;
-      cursor: not-allowed;
-      text-decoration: line-through;
-    }
-
-    .cell.clue:focus {
-      outline: 2px solid rgba(255,255,0,0.9);
-      outline-offset: -2px;
-    }
-
-    /* --- Teams bar (bottom) --- */
-    .teams-bar {
-      position: fixed;
-      inset: auto 0 0 0;
-      height: var(--teams-bar-height);
-      background: rgba(10, 14, 30, 0.92);
-      border-top: 1px solid rgba(255,255,255,0.12);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      box-shadow: 0 -10px 40px rgba(0,0,0,0.35);
-      z-index: 8;
-    }
-
-    .teams-bar.blurred {
-      filter: blur(6px);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .team-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 200px;
-    }
-
-    .team-actions .buttons {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .teams-scroll {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      padding: 4px 0;
-      flex: 1;
-    }
-
-    .teams {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .teams-scroll .teams {
-      flex-wrap: nowrap;
-    }
-
-    .team {
-      display: grid;
-      grid-template-columns: auto auto;
-      gap: 8px 10px;
-      align-items: center;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.03);
-      cursor: pointer;
-      min-width: 160px;
-    }
-
-    .team.active {
-      border-color: rgba(255,255,0,0.85);
-      box-shadow: 0 0 0 2px rgba(255,255,0,0.18) inset;
-    }
-
-    .team .name {
-      font-weight: 700;
-      line-height: 1.2;
-    }
-
-    .team .score {
-      font-weight: 900;
-      font-size: 18px;
-      padding: 6px 10px;
-      border-radius: 10px;
-      background: rgba(21, 27, 75, 0.85);
-      border: 1px solid rgba(255,255,255,0.12);
-      min-width: 78px;
-      text-align: center;
-      justify-self: end;
-    }
-
-    .team-controls {
-      grid-column: 1 / -1;
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .team-controls button {
-      min-width: 68px;
-      padding: 6px 8px;
-    }
-
-    .hint {
-      opacity: 0.8;
-      font-size: 14px;
-    }
-
-    /* --- Start overlay --- */
-    .start-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      padding: 20px;
-    }
-
-    .start-overlay.hidden {
-      display: none;
-    }
-
-    .start-card {
-      background: rgba(10, 14, 30, 0.96);
-      border-radius: 16px;
-      padding: 18px 18px 16px;
-      width: min(520px, 100%);
-      border: 1px solid rgba(255,255,255,0.14);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-    }
-
-    .start-card h2 {
-      margin: 6px 0 12px;
-    }
-
-    .start-card label {
-      display: block;
-      margin: 12px 0 8px;
-      font-weight: 600;
-    }
-
-    .start-card select {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.04);
-      color: #fff;
-    }
-
-    .start-card .actions {
-      margin-top: 16px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    /* --- Question view (full screen) --- */
-    .question-view {
-      position: fixed;
-      inset: 0;
-      z-index: 9;
-      background: rgba(10, 14, 30, 0.98);
-      display: flex;
-      flex-direction: column;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.08s ease;
-    }
-
-    .question-view.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .question-view header,
-    .question-view footer {
-      padding: 12px 16px;
-      background: rgba(255,255,255,0.04);
-      border-bottom: 1px solid rgba(255,255,255,0.12);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .question-view footer {
-      border-top: 1px solid rgba(255,255,255,0.12);
-      border-bottom: none;
-    }
-
-    .qv-crumb {
-      font-weight: 800;
-      font-size: 16px;
-      text-align: center;
-      flex: 1;
-    }
-
-    .question-body {
-      flex: 1;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      padding: 20px;
-      gap: 18px;
-    }
-
-    .qv-question {
-      font-size: clamp(28px, 5vw, 48px);
-      font-weight: 900;
-      line-height: 1.15;
-    }
-
-    .qv-answer {
-      display: none;
-      font-size: clamp(24px, 4vw, 38px);
-      font-weight: 800;
-      color: #8be9ff;
-      margin-top: 10px;
-    }
-
-    .question-view.revealed .qv-answer {
-      display: block;
-    }
-
-    @media (max-width: 720px) {
-      .team {
-        min-width: 140px;
-      }
-
-      .team-actions {
-        min-width: 180px;
-      }
-
-      .question-view header, .question-view footer {
-        align-items: flex-start;
-      }
-    }
-
-    /* --- Buttons --- */
-    button.ghost, button.accent {
-      cursor: pointer;
-    }
-
-    .kbd {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 12px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.18);
-    }
-  </style>
+  <link rel="stylesheet" href="/css/boards-play.css" />
 </head>
 
-<body class="page-board-play" data-nav="boards">
-  <div data-include="header"></div>
-
-  <main class="shell">
-    <div class="play-top">
-      <div class="board-meta">
-        <p class="eyebrow">Boards • Game screen</p>
-        <h2 id="board-title">Loading…</h2>
-        <p class="lede" id="board-subtitle">Host-driven play. Click a value to reveal a clue.</p>
-      </div>
-
-      <div class="host-tools">
-        <span class="pill">
-          <label title="When enabled, clicking a clue immediately marks it used after closing the question view.">
-            <input type="checkbox" id="auto-mark-used" checked />
-            Auto-mark used
-          </label>
-        </span>
-
-        <span class="pill">
-          <label title="If enabled, 'Wrong' subtracts points. If off, Wrong just marks used.">
-            <input type="checkbox" id="wrong-subtracts" checked />
-            Wrong subtracts
-          </label>
-        </span>
-
-        <button type="button" class="ghost" id="reset-local">Reset session</button>
-      </div>
-    </div>
-
-    <div id="gameplay" class="gameplay blurred">
-      <!-- BOARD -->
-      <section class="board-area" aria-label="Board">
-        <div id="board-grid" class="board-grid" role="grid" aria-label="Jeopardy-style board"></div>
-      </section>
-    </div>
-  </main>
-
-  <div id="teams-bar" class="teams-bar" aria-label="Scoreboard">
-    <div class="team-actions">
-      <div class="buttons">
-        <button type="button" class="accent" id="add-team">Add team</button>
-        <button type="button" class="ghost" id="rename-team">Rename</button>
-        <button type="button" class="ghost" id="remove-team">Remove</button>
-      </div>
-      <span class="hint" id="active-team-hint">Pick an active team.</span>
-    </div>
-
-    <div class="teams-scroll" aria-live="polite">
-      <div class="teams" id="teams"></div>
-    </div>
-  </div>
-
-  <div id="question-view" class="question-view" aria-hidden="true">
-    <header>
-      <div class="qv-left">
-        <button type="button" class="ghost" id="qv-continue">Continue (Esc)</button>
-      </div>
-      <div class="qv-crumb" id="qv-crumb">Category • Points</div>
-      <div class="qv-actions">
-        <button type="button" class="accent" id="qv-correct">Correct</button>
-        <button type="button" class="ghost" id="qv-wrong">Wrong</button>
-        <button type="button" class="ghost" id="qv-mark-used">Mark used</button>
-        <button type="button" class="accent" id="qv-reveal">Reveal answer (Space)</button>
-      </div>
-    </header>
-
-    <div class="question-body">
-      <div>
-        <p class="qv-question" id="qv-question">—</p>
-        <p class="qv-answer" id="qv-answer">—</p>
-      </div>
-    </div>
-
-    <footer>
-      <div class="teams" id="teams-full"></div>
-      <p class="hint">Shortcuts: <span class="kbd">1–9</span> pick team • <span class="kbd">Space</span> reveal answer • <span class="kbd">Esc</span> close</p>
-    </footer>
-  </div>
-
+<body class="page-board-play">
   <div id="start-overlay" class="start-overlay">
     <div class="start-card">
-      <p class="eyebrow">Boards</p>
-      <h2 class="start-title" id="start-title">Loading…</h2>
-      <p class="hint">Choose how many teams are playing today.</p>
+      <p class="eyebrow">Boards • Play</p>
+      <h2 id="start-title">Loading…</h2>
+      <p class="lede">Choose how many teams are playing today.</p>
 
-      <label for="team-count">Number of teams</label>
+      <label class="field-label" for="team-count">Number of teams</label>
       <select id="team-count" name="team-count">
         <option value="2">2 teams</option>
         <option value="3">3 teams</option>
@@ -511,60 +24,98 @@
         <option value="6">6 teams</option>
       </select>
 
-      <div class="actions">
+      <div class="start-actions">
         <button type="button" class="accent" id="start-game">Start</button>
         <span class="hint">Press F11 for full-screen mode</span>
       </div>
     </div>
   </div>
 
-  <!-- Prefilled 4x4 demo board (replace server-filled JSON later) -->
+  <main class="play-shell">
+    <section id="gameplay" class="gameplay is-blurred">
+      <header class="board-head">
+        <div>
+          <p class="eyebrow">Boards • Game</p>
+          <h1 id="board-title">Loading…</h1>
+          <p class="lede" id="board-subtitle">Host-driven play. Click a value to reveal a clue.</p>
+        </div>
+      </header>
+
+      <section class="board-area">
+        <div id="board-categories" class="board-categories" role="row"></div>
+        <div id="board-grid" class="board-grid" role="grid" aria-label="Jeopardy board"></div>
+      </section>
+    </section>
+
+    <section id="teams-strip" class="teams-strip is-blurred" aria-label="Teams scoreboard">
+      <div class="teams-scroll">
+        <div id="teams" class="teams"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="question-view" class="question-view" aria-hidden="true">
+    <header class="qv-bar">
+      <button type="button" class="ghost" id="qv-continue">Continue (Esc)</button>
+      <div class="qv-crumb" id="qv-crumb">Category • Points</div>
+      <button type="button" class="accent" id="qv-reveal">Reveal answer (Space)</button>
+    </header>
+
+    <div class="question-body">
+      <div class="question-inner">
+        <p class="qv-question" id="qv-question">—</p>
+        <p class="qv-answer" id="qv-answer">—</p>
+      </div>
+    </div>
+
+    <footer class="teams-strip qv-teams" aria-label="Teams scoring">
+      <div class="teams-scroll">
+        <div id="teams-question" class="teams"></div>
+      </div>
+    </footer>
+  </div>
+
   <script type="application/json" id="board-data">
   {
     "id": "demo-aws-4x4",
     "title": "The Most Unnecessarily AWS Board",
     "language": "en",
-    "updated_at": "2025-12-22T00:00:00Z",
     "categories": [
-      "LAMBDA LORE",
-      "DYNAMODB DRAMA",
-      "S3 SHENANIGANS",
-      "NETLIFY NOODLES"
+      { "name": "LAMBDA LORE" },
+      { "name": "DYNAMODB DRAMA" },
+      { "name": "S3 SHENANIGANS" },
+      { "name": "NETLIFY NOODLES" }
     ],
-    "points_per_row": [100, 200, 300, 400],
-    "clues": [
+    "points_scheme": [100, 200, 300, 400],
+    "grid": [
       [
-        { "q": "This runtime executes your code while you pretend servers don’t exist.", "a": "AWS Lambda" },
-        { "q": "DynamoDB’s unit of 'you thought this would be simple' throughput.", "a": "RCU / WCU (capacity units)" },
-        { "q": "The S3 feature that saves you from accidental deletes… until it doesn’t.", "a": "Versioning" },
-        { "q": "Netlify’s go-to magic for making deploys feel like a dopamine dispenser.", "a": "Continuous deployment" }
+        { "points": 100, "q": "This runtime executes your code while you pretend servers don’t exist.", "a": "AWS Lambda" },
+        { "points": 100, "q": "DynamoDB’s unit of 'you thought this would be simple' throughput.", "a": "RCU / WCU (capacity units)" },
+        { "points": 100, "q": "The S3 feature that saves you from accidental deletes… until it doesn’t.", "a": "Versioning" },
+        { "points": 100, "q": "Netlify’s go-to magic for making deploys feel like a dopamine dispenser.", "a": "Continuous deployment" }
       ],
       [
-        { "q": "The AWS service that turns API calls into 'hello from a function' moments.", "a": "API Gateway" },
-        { "q": "That DynamoDB thing you add when you regret your primary key choices.", "a": "GSI (Global Secondary Index)" },
-        { "q": "S3’s illusion of folders is really just…", "a": "Prefixes (object key names)" },
-        { "q": "This file tells the browser where your built assets live.", "a": "index.html (and its references)" }
+        { "points": 200, "q": "The AWS service that turns API calls into 'hello from a function' moments.", "a": "API Gateway" },
+        { "points": 200, "q": "That DynamoDB thing you add when you regret your primary key choices.", "a": "GSI (Global Secondary Index)" },
+        { "points": 200, "q": "S3’s illusion of folders is really just…", "a": "Prefixes (object key names)" },
+        { "points": 200, "q": "This file tells the browser where your built assets live.", "a": "index.html (and its references)" }
       ],
       [
-        { "q": "The kind of Lambda invoke where you throw it over the wall and hope.", "a": "Async invocation" },
-        { "q": "DynamoDB’s vibe: fast, scalable, and allergic to ad-hoc joins.", "a": "NoSQL key-value/document store" },
-        { "q": "S3’s 'fine, keep it private' access pattern best practice.", "a": "Block Public Access + least-privilege IAM" },
-        { "q": "Netlify feature that makes /game/123 route work on refresh.", "a": "Redirects / SPA fallback" }
+        { "points": 300, "q": "The kind of Lambda invoke where you throw it over the wall and hope.", "a": "Async invocation" },
+        { "points": 300, "q": "DynamoDB’s vibe: fast, scalable, and allergic to ad-hoc joins.", "a": "NoSQL key-value/document store" },
+        { "points": 300, "q": "S3’s 'fine, keep it private' access pattern best practice.", "a": "Block Public Access + least-privilege IAM" },
+        { "points": 300, "q": "Netlify feature that makes /game/123 route work on refresh.", "a": "Redirects / SPA fallback" }
       ],
       [
-        { "q": "The AWS feature that stops your Lambda bill from going full anime power-up.", "a": "Reserved concurrency (or concurrency limits)" },
-        { "q": "The DynamoDB attribute type that makes numbers behave like numbers.", "a": "N (Number)" },
-        { "q": "S3’s 'ship the website' hosting mode (classic, simple, sharp edges).", "a": "Static website hosting" },
-        { "q": "The only real 'auth' you need for a coffee-shop game: one person is the…", "a": "Host / Admin" }
+        { "points": 400, "q": "The AWS feature that stops your Lambda bill from going full anime power-up.", "a": "Reserved concurrency (or concurrency limits)" },
+        { "points": 400, "q": "The DynamoDB attribute type that makes numbers behave like numbers.", "a": "N (Number)" },
+        { "points": 400, "q": "S3’s 'ship the website' hosting mode (classic, simple, sharp edges).", "a": "Static website hosting" },
+        { "points": 400, "q": "The only real 'auth' you need for a coffee-shop game: one person is the…", "a": "Host / Admin" }
       ]
     ]
   }
   </script>
 
-  <div data-include="footer"></div>
-
-  <script src="/js/layout.js"></script>
-  <script src="/js/board.js"></script>
-  <script src="/js/board-start-overlay.js"></script>
+  <script type="module" src="/js/boards/play-board.js"></script>
 </body>
 </html>

@@ -1,0 +1,321 @@
+:root {
+  --teams-strip-height: 140px;
+}
+
+body.page-board-play {
+  background: linear-gradient(160deg, rgba(30, 58, 138, 0.06), var(--neutral));
+  color: var(--text);
+}
+
+.play-shell {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 12px;
+  padding: 12px;
+}
+
+.gameplay {
+  background: var(--panel);
+  border: 1px solid var(--soft-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.gameplay.is-blurred,
+.teams-strip.is-blurred {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.board-head h1 {
+  margin: 4px 0 6px;
+  color: var(--primary);
+}
+
+.board-area {
+  border: 1px solid var(--soft-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--soft-border);
+  display: grid;
+  grid-template-rows: minmax(52px, 12vh) 1fr;
+  min-height: 0;
+}
+
+.board-area[data-cols] {
+  --cols: attr(data-cols number);
+}
+
+.board-categories {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  background: var(--primary-deep);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+  font-size: clamp(12px, 2vw, 15px);
+}
+
+.board-categories .cat {
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.board-categories .cat:last-child {
+  border-right: none;
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-auto-rows: 1fr;
+  gap: 1px;
+  background: var(--soft-border);
+  padding: 1px;
+  min-height: 0;
+}
+
+.board-grid button.cell {
+  background: linear-gradient(145deg, var(--primary), var(--primary-deep));
+  color: #fff;
+  border: none;
+  font-weight: 800;
+  font-size: clamp(22px, 5vw, 38px);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.board-grid button.cell.used {
+  opacity: 0.38;
+  cursor: not-allowed;
+  background: var(--soft-border);
+  color: var(--muted);
+  box-shadow: inset 0 0 0 1px var(--soft-border);
+}
+
+.board-grid button.cell:focus-visible {
+  outline: 3px solid rgba(30, 58, 138, 0.35);
+  outline-offset: 2px;
+}
+
+.teams-strip {
+  background: var(--panel);
+  border: 1px solid var(--soft-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teams-scroll {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.teams {
+  display: flex;
+  gap: 10px;
+  padding: 4px;
+  min-height: 74px;
+}
+
+.team {
+  background: rgba(30, 58, 138, 0.08);
+  border: 1px solid var(--soft-border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 10px;
+  min-width: 180px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.team .team-name {
+  font-weight: 800;
+  color: var(--primary-deep);
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(30, 58, 138, 0.08);
+  outline: none;
+}
+
+.team .team-name:focus-visible {
+  outline: 2px solid rgba(30, 58, 138, 0.35);
+  outline-offset: 2px;
+}
+
+.team .score {
+  font-weight: 900;
+  color: var(--text);
+  justify-self: end;
+}
+
+.team .controls {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+}
+
+.team .controls button {
+  padding: 8px 12px;
+}
+
+.start-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(21, 44, 106, 0.45);
+  backdrop-filter: blur(3px);
+  z-index: 20;
+  padding: 16px;
+}
+
+.start-overlay.hidden {
+  display: none;
+}
+
+.start-card {
+  background: var(--panel);
+  border: 1px solid var(--soft-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 16px;
+  width: min(520px, 100%);
+}
+
+.field-label {
+  display: block;
+  font-weight: 700;
+  color: var(--muted);
+  margin: 12px 0 6px;
+}
+
+#team-count {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--soft-border);
+  font: inherit;
+  background: var(--neutral);
+}
+
+.start-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.question-view {
+  position: fixed;
+  inset: 0;
+  background: var(--primary-deep);
+  color: #fff;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.08s ease;
+  z-index: 15;
+}
+
+.question-view.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.qv-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.qv-crumb {
+  text-align: center;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.question-body {
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.question-inner {
+  max-width: 960px;
+  text-align: center;
+  display: grid;
+  gap: 12px;
+}
+
+.qv-question {
+  font-size: clamp(26px, 5vw, 48px);
+  font-weight: 900;
+  margin: 0;
+}
+
+.qv-answer {
+  display: none;
+  font-size: clamp(22px, 4vw, 36px);
+  font-weight: 800;
+  color: var(--accent);
+  margin: 0;
+}
+
+.question-view.revealed .qv-answer {
+  display: block;
+}
+
+.qv-teams {
+  background: rgba(0, 0, 0, 0.16);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+@media (max-width: 720px) {
+  .play-shell {
+    grid-template-rows: auto auto;
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .teams {
+    min-width: 320px;
+  }
+
+  .gameplay {
+    height: auto;
+  }
+}
