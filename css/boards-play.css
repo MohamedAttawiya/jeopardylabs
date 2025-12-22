@@ -49,6 +49,7 @@ body.page-board-play {
   display: grid;
   grid-template-rows: minmax(52px, 12vh) 1fr;
   min-height: 0;
+  height: 100%;
 }
 
 .board-area[data-cols] {
@@ -85,6 +86,7 @@ body.page-board-play {
   background: var(--soft-border);
   padding: 1px;
   min-height: 0;
+  height: 100%;
 }
 
 .board-grid button.cell {
