@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boards | Play</title>
+
+  <!-- Keep your existing global look -->
+  <link rel="stylesheet" href="/css/styles.css" />
+
+  <!-- Minimal “make it work” CSS just for the play screen -->
+  <style>
+    /* --- Layout shell (matches your createboard-ish spacing) --- */
+    main.shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 64px;
+    }
+
+    .play-top {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .board-meta {
+      min-width: 280px;
+    }
+
+    .board-meta .eyebrow {
+      margin: 0;
+    }
+
+    .board-meta h2 {
+      margin: 6px 0 4px;
+    }
+
+    .board-meta .lede {
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .host-tools {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .host-tools .pill {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .host-tools .pill label {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 14px;
+      opacity: 0.9;
+      margin: 0;
+    }
+
+    .host-tools input[type="checkbox"] {
+      transform: translateY(1px);
+    }
+
+    /* --- Two-column (board + sidebar) --- */
+    .play-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 980px) {
+      .play-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* --- Board grid --- */
+    .board-wrap {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .board-grid {
+      display: grid;
+      gap: 1px;
+      background: rgba(255,255,255,0.12); /* grid lines */
+    }
+
+    .cell {
+      background: rgba(10, 14, 30, 0.85);
+      color: #fff;
+      min-height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+      user-select: none;
+    }
+
+    .cell.category {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 14px;
+      min-height: 68px;
+      background: rgba(21, 27, 75, 0.95);
+    }
+
+    .cell.clue {
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 28px;
+    }
+
+    .cell.clue.used {
+      opacity: 0.35;
+      cursor: not-allowed;
+      text-decoration: line-through;
+    }
+
+    .cell.clue:focus {
+      outline: 2px solid rgba(255,255,0,0.9);
+      outline-offset: -2px;
+    }
+
+    /* --- Sidebar / scoreboard --- */
+    .panel {
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-head h3 {
+      margin: 0;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .teams {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .team {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+    }
+
+    .team.active {
+      border-color: rgba(255,255,0,0.85);
+      box-shadow: 0 0 0 2px rgba(255,255,0,0.18) inset;
+    }
+
+    .team .name {
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .team .score {
+      font-weight: 900;
+      font-size: 18px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: rgba(21, 27, 75, 0.85);
+      border: 1px solid rgba(255,255,255,0.12);
+      min-width: 78px;
+      text-align: center;
+    }
+
+    .team-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* --- Modal (mirrors createboard structure/classes) --- */
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      z-index: 9999;
+    }
+
+    .modal.open {
+      display: block;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+    }
+
+    .modal-dialog {
+      position: relative;
+      max-width: 900px;
+      margin: 6vh auto;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(21, 27, 75, 0.98);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    }
+
+    .modal-head {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      background: rgba(21, 27, 75, 0.95);
+    }
+
+    .modal-head h3 {
+      margin: 4px 0 0;
+    }
+
+    .modal-body {
+      padding: 18px 16px 10px;
+    }
+
+    .qa {
+      text-align: center;
+      padding: 14px 12px;
+    }
+
+    .qa .points {
+      font-weight: 900;
+      opacity: 0.95;
+      margin-bottom: 10px;
+    }
+
+    .qa .question {
+      font-size: 34px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin: 0;
+    }
+
+    .qa .answer {
+      display: none;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 2px dotted rgba(255,255,255,0.6);
+      font-size: 24px;
+      font-weight: 700;
+      opacity: 0.98;
+    }
+
+    .qa.reveal .answer {
+      display: block;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      background: rgba(10, 14, 30, 0.55);
+      flex-wrap: wrap;
+    }
+
+    .award {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Use your existing button classes if present; provide fallbacks */
+    button.ghost, button.accent {
+      cursor: pointer;
+    }
+
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+  </style>
+</head>
+
+<body class="page-board-play" data-nav="boards">
+  <div data-include="header"></div>
+
+  <main class="shell">
+    <div class="play-top">
+      <div class="board-meta">
+        <p class="eyebrow">Boards • Game screen</p>
+        <h2 id="board-title">Loading…</h2>
+        <p class="lede" id="board-subtitle">Host-driven play. Click a value to reveal a clue.</p>
+      </div>
+
+      <div class="host-tools">
+        <span class="pill">
+          <label title="When enabled, clicking a clue immediately marks it used after closing the modal.">
+            <input type="checkbox" id="auto-mark-used" checked />
+            Auto-mark used
+          </label>
+        </span>
+
+        <span class="pill">
+          <label title="If enabled, 'Wrong' subtracts points. If off, Wrong just marks used.">
+            <input type="checkbox" id="wrong-subtracts" checked />
+            Wrong subtracts
+          </label>
+        </span>
+
+        <button type="button" class="ghost" id="reset-local">Reset session</button>
+      </div>
+    </div>
+
+    <div class="play-layout">
+      <!-- BOARD -->
+      <section class="board-wrap" aria-label="Board">
+        <div id="board-grid" class="board-grid" role="grid" aria-label="Jeopardy-style board"></div>
+      </section>
+
+      <!-- SIDEBAR -->
+      <aside class="panel" aria-label="Scoreboard">
+        <div class="panel-head">
+          <h3>Teams</h3>
+          <span class="hint" id="active-team-hint">Pick an active team.</span>
+        </div>
+
+        <div class="panel-body">
+          <div class="team-actions">
+            <button type="button" class="accent" id="add-team">Add team</button>
+            <button type="button" class="ghost" id="rename-team">Rename</button>
+            <button type="button" class="ghost" id="remove-team">Remove</button>
+          </div>
+
+          <div class="teams" id="teams"></div>
+
+          <p class="hint" style="margin-top: 14px;">
+            Shortcuts:
+            <span class="kbd">1–9</span> pick team •
+            <span class="kbd">A</span> reveal answer •
+            <span class="kbd">C</span> correct •
+            <span class="kbd">W</span> wrong •
+            <span class="kbd">Esc</span> close
+          </p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- MODAL (same overall structure as createboard.html) -->
+  <div id="cell-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-backdrop" data-close-modal></div>
+
+    <div class="modal-dialog">
+      <header class="modal-head">
+        <div>
+          <p class="eyebrow" id="modal-category">Category</p>
+          <h3 id="modal-title">Clue</h3>
+        </div>
+        <button type="button" class="ghost" data-close-modal aria-label="Close">✕</button>
+      </header>
+
+      <div class="modal-body">
+        <div class="qa" id="qa">
+          <div class="points" id="modal-points">—</div>
+          <p class="question" id="modal-question">—</p>
+          <div class="answer" id="modal-answer">—</div>
+        </div>
+      </div>
+
+      <footer class="modal-actions">
+        <div class="award">
+          <button type="button" class="ghost" id="reveal-answer">Reveal answer</button>
+          <button type="button" class="accent" id="mark-correct">Correct</button>
+          <button type="button" class="ghost" id="mark-wrong">Wrong</button>
+        </div>
+
+        <div>
+          <button type="button" class="ghost" data-close-modal>Continue</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Prefilled 4x4 demo board (replace server-filled JSON later) -->
+  <script type="application/json" id="board-data">
+  {
+    "id": "demo-aws-4x4",
+    "title": "The Most Unnecessarily AWS Board",
+    "language": "en",
+    "updated_at": "2025-12-22T00:00:00Z",
+    "categories": [
+      "LAMBDA LORE",
+      "DYNAMODB DRAMA",
+      "S3 SHENANIGANS",
+      "NETLIFY NOODLES"
+    ],
+    "points_per_row": [100, 200, 300, 400],
+    "clues": [
+      [
+        { "q": "This runtime executes your code while you pretend servers don’t exist.", "a": "AWS Lambda" },
+        { "q": "DynamoDB’s unit of 'you thought this would be simple' throughput.", "a": "RCU / WCU (capacity units)" },
+        { "q": "The S3 feature that saves you from accidental deletes… until it doesn’t.", "a": "Versioning" },
+        { "q": "Netlify’s go-to magic for making deploys feel like a dopamine dispenser.", "a": "Continuous deployment" }
+      ],
+      [
+        { "q": "The AWS service that turns API calls into 'hello from a function' moments.", "a": "API Gateway" },
+        { "q": "That DynamoDB thing you add when you regret your primary key choices.", "a": "GSI (Global Secondary Index)" },
+        { "q": "S3’s illusion of folders is really just…", "a": "Prefixes (object key names)" },
+        { "q": "This file tells the browser where your built assets live.", "a": "index.html (and its references)" }
+      ],
+      [
+        { "q": "The kind of Lambda invoke where you throw it over the wall and hope.", "a": "Async invocation" },
+        { "q": "DynamoDB’s vibe: fast, scalable, and allergic to ad-hoc joins.", "a": "NoSQL key-value/document store" },
+        { "q": "S3’s 'fine, keep it private' access pattern best practice.", "a": "Block Public Access + least-privilege IAM" },
+        { "q": "Netlify feature that makes /game/123 route work on refresh.", "a": "Redirects / SPA fallback" }
+      ],
+      [
+        { "q": "The AWS feature that stops your Lambda bill from going full anime power-up.", "a": "Reserved concurrency (or concurrency limits)" },
+        { "q": "The DynamoDB attribute type that makes numbers behave like numbers.", "a": "N (Number)" },
+        { "q": "S3’s 'ship the website' hosting mode (classic, simple, sharp edges).", "a": "Static website hosting" },
+        { "q": "The only real 'auth' you need for a coffee-shop game: one person is the…", "a": "Host / Admin" }
+      ]
+    ]
+  }
+  </script>
+
+  <div data-include="footer"></div>
+
+  <script src="/js/layout.js"></script>
+  <script src="/js/board.js"></script>
+</body>
+</html>
