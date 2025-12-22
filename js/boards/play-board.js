@@ -125,6 +125,7 @@ function main() {
   const board = normalizeBoard(rawBoard);
   const keys = storageKeys(board.id);
   const usedCells = loadUsed(keys.used);
+  const bodyEl = document.body;
 
   const gameplayEl = document.getElementById("gameplay");
   const teamsStrip = document.getElementById("teams-strip");
@@ -212,12 +213,14 @@ function main() {
     questionView.setAttribute("aria-hidden", "false");
 
     teamsAPI?.setScoreStep(points);
+    bodyEl?.classList.add("mode-question");
   }
 
   function closeQuestionView() {
     questionView.classList.remove("open", "revealed");
     questionView.setAttribute("aria-hidden", "true");
     activeClue = null;
+    bodyEl?.classList.remove("mode-question");
   }
 
   function toggleReveal() {
