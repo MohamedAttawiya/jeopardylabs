@@ -1,8 +1,8 @@
 /* AHWA.GAMES — Boards (Play Screen)
    Host-driven, one screen, many players/teams.
    - Renders N×N board (3..5 recommended, but works for any N that fits)
-   - Click clue -> modal with question + reveal answer
-   - Host awards points to active team
+   - Full-screen question view (no modal)
+   - Host awards points to active team via +/- controls
    - Local session state persisted in localStorage per board id
 */
 
@@ -12,30 +12,30 @@
   const gridEl = el("board-grid");
   const titleEl = el("board-title");
   const subtitleEl = el("board-subtitle");
-
-  const modal = el("cell-modal");
-  const qa = el("qa");
-  const modalCategory = el("modal-category");
-  const modalTitle = el("modal-title");
-  const modalPoints = el("modal-points");
-  const modalQuestion = el("modal-question");
-  const modalAnswer = el("modal-answer");
-
-  const revealBtn = el("reveal-answer");
-  const correctBtn = el("mark-correct");
-  const wrongBtn = el("mark-wrong");
+  const gameplayEl = el("gameplay");
 
   const autoMarkUsedEl = el("auto-mark-used");
   const wrongSubtractsEl = el("wrong-subtracts");
   const resetLocalBtn = el("reset-local");
 
   const teamsEl = el("teams");
+  const teamsFullEl = el("teams-full");
   const activeTeamHint = el("active-team-hint");
   const addTeamBtn = el("add-team");
   const renameTeamBtn = el("rename-team");
   const removeTeamBtn = el("remove-team");
 
-  // ---------- Load board data (server-filled later; JSON-in-script for now) ----------
+  const questionView = el("question-view");
+  const qvQuestion = el("qv-question");
+  const qvAnswer = el("qv-answer");
+  const qvCrumb = el("qv-crumb");
+  const qvRevealBtn = el("qv-reveal");
+  const qvContinueBtn = el("qv-continue");
+  const qvMarkUsedBtn = el("qv-mark-used");
+  const qvCorrectBtn = el("qv-correct");
+  const qvWrongBtn = el("qv-wrong");
+
+  // ---------- Load board data ----------
   const boardDataTag = el("board-data");
   if (!boardDataTag) {
     console.error("Missing #board-data <script type='application/json'>");
@@ -64,7 +64,6 @@
     return;
   }
 
-  // clues should be [rows][cols]
   const safeClues = Array.from({ length: rows }, (_, r) =>
     Array.from({ length: cols }, (_, c) => (clues?.[r]?.[c] ? clues[r][c] : { q: "", a: "" }))
   );
@@ -72,12 +71,15 @@
   // ---------- Session state ----------
   const storageKey = `ahwa.board.play.${board.id || "unknown"}`;
 
+  const createUsedMatrix = () =>
+    Array.from({ length: rows }, () => Array.from({ length: cols }, () => false));
+
+  const defaultTeams = (count = 2) =>
+    Array.from({ length: count }, (_, idx) => ({ name: `Team ${idx + 1}`, score: 0 }));
+
   const defaultState = {
-    used: Array.from({ length: rows }, () => Array.from({ length: cols }, () => false)),
-    teams: [
-      { name: "Team 1", score: 0 },
-      { name: "Team 2", score: 0 }
-    ],
+    used: createUsedMatrix(),
+    teams: defaultTeams(),
     activeTeamIdx: 0
   };
 
@@ -87,7 +89,6 @@
       if (!raw) return structuredClone(defaultState);
       const parsed = JSON.parse(raw);
 
-      // shape-guard for used matrix
       const used = Array.from({ length: rows }, (_, r) =>
         Array.from({ length: cols }, (_, c) => Boolean(parsed?.used?.[r]?.[c]))
       );
@@ -97,7 +98,7 @@
             name: String(t?.name || `Team ${idx + 1}`),
             score: Number.isFinite(Number(t?.score)) ? Number(t.score) : 0
           }))
-        : structuredClone(defaultState.teams);
+        : defaultTeams();
 
       const activeTeamIdx = Math.min(
         Math.max(0, Number(parsed.activeTeamIdx) || 0),
@@ -115,6 +116,7 @@
   }
 
   let state = loadState();
+  let activeClue = null; // { r, c, points, category }
 
   // ---------- Render ----------
   function renderHeader() {
@@ -122,8 +124,10 @@
     subtitleEl.textContent = `${cols} categories × ${rows} clues • Host-controlled scoring`;
   }
 
-  function renderTeams() {
-    teamsEl.innerHTML = "";
+  function renderTeamsList(container, { withAdjustments = false } = {}) {
+    if (!container) return;
+
+    container.innerHTML = "";
 
     state.teams.forEach((t, idx) => {
       const row = document.createElement("div");
@@ -143,6 +147,37 @@
       row.appendChild(name);
       row.appendChild(score);
 
+      if (withAdjustments) {
+        const controls = document.createElement("div");
+        controls.className = "team-controls";
+
+        const delta = activeClue?.points || 0;
+
+        const plus = document.createElement("button");
+        plus.type = "button";
+        plus.className = "accent";
+        plus.textContent = delta > 0 ? `+${delta}` : "+";
+        plus.disabled = delta <= 0;
+        plus.addEventListener("click", (e) => {
+          e.stopPropagation();
+          awardToTeam(idx, delta);
+        });
+
+        const minus = document.createElement("button");
+        minus.type = "button";
+        minus.className = "ghost";
+        minus.textContent = delta > 0 ? `-${delta}` : "-";
+        minus.disabled = delta <= 0;
+        minus.addEventListener("click", (e) => {
+          e.stopPropagation();
+          awardToTeam(idx, delta * -1);
+        });
+
+        controls.appendChild(plus);
+        controls.appendChild(minus);
+        row.appendChild(controls);
+      }
+
       row.addEventListener("click", () => setActiveTeam(idx));
       row.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -151,24 +186,25 @@
         }
       });
 
-      teamsEl.appendChild(row);
+      container.appendChild(row);
     });
+  }
+
+  function renderTeams() {
+    renderTeamsList(teamsEl, { withAdjustments: false });
+    renderTeamsList(teamsFullEl, { withAdjustments: true });
 
     const active = state.teams[state.activeTeamIdx];
-    activeTeamHint.textContent = active
-      ? `Active: ${active.name}`
-      : "Pick an active team.";
+    if (activeTeamHint) {
+      activeTeamHint.textContent = active ? `Active: ${active.name}` : "Pick an active team.";
+    }
   }
 
   function renderGrid() {
-    // grid template: header row + rows
-    // columns: categories + (no extra)
     gridEl.style.gridTemplateColumns = `repeat(${cols}, minmax(120px, 1fr))`;
-
-    // Clear
+    gridEl.style.gridTemplateRows = `auto repeat(${rows}, 1fr)`;
     gridEl.innerHTML = "";
 
-    // Category row
     for (let c = 0; c < cols; c++) {
       const cell = document.createElement("div");
       cell.className = "cell category";
@@ -177,7 +213,6 @@
       gridEl.appendChild(cell);
     }
 
-    // Clue cells
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const used = !!state.used?.[r]?.[c];
@@ -190,7 +225,6 @@
         cell.dataset.r = String(r);
         cell.dataset.c = String(c);
         cell.disabled = used;
-
         cell.textContent = String(points);
 
         cell.addEventListener("click", () => openClue(r, c));
@@ -199,47 +233,70 @@
     }
   }
 
-  // ---------- Modal ----------
-  let activeClue = null; // { r, c, points }
-
-  function openModal() {
-    modal.classList.add("open");
-    qa.classList.remove("reveal");
-    // focus trap-lite: focus reveal button
-    setTimeout(() => revealBtn?.focus(), 0);
-  }
-
-  function closeModal() {
-    modal.classList.remove("open");
-    qa.classList.remove("reveal");
-
-    if (autoMarkUsedEl?.checked && activeClue) {
-      markUsed(activeClue.r, activeClue.c);
-    }
-
-    activeClue = null;
-  }
-
+  // ---------- Question view ----------
   function openClue(r, c) {
+    if (state.used?.[r]?.[c]) return;
+
     const points = pointsPerRow[r] ?? (r + 1) * 100;
     const cat = categories[c] || `Category ${c + 1}`;
     const clue = safeClues[r][c] || { q: "", a: "" };
 
-    activeClue = { r, c, points };
+    activeClue = { r, c, points, category: cat };
 
-    modalCategory.textContent = cat;
-    modalTitle.textContent = `${points} points`;
-    modalPoints.textContent = `${points} points`;
-    modalQuestion.textContent = clue.q || "(Empty question)";
-    modalAnswer.textContent = clue.a || "(Empty answer)";
+    qvCrumb.textContent = `${cat} for ${points}`;
+    qvQuestion.textContent = clue.q || "(Empty question)";
+    qvAnswer.textContent = clue.a || "(Empty answer)";
 
-    openModal();
+    questionView.classList.remove("revealed");
+    questionView.classList.add("open");
+    questionView.setAttribute("aria-hidden", "false");
+    if (gameplayEl) gameplayEl.classList.add("question-open");
+
+    renderTeams();
+
+    setTimeout(() => qvRevealBtn?.focus(), 0);
   }
 
-  function revealAnswer() {
-    qa.classList.add("reveal");
+  function closeQuestionView({ markUsedOnClose = false } = {}) {
+    if (activeClue && (autoMarkUsedEl?.checked || markUsedOnClose)) {
+      markUsed(activeClue.r, activeClue.c);
+    }
+
+    questionView.classList.remove("open", "revealed");
+    questionView.setAttribute("aria-hidden", "true");
+    if (gameplayEl) gameplayEl.classList.remove("question-open");
+
+    activeClue = null;
+    renderTeams();
   }
 
+  function toggleReveal() {
+    if (!questionView.classList.contains("open")) return;
+    questionView.classList.toggle("revealed");
+  }
+
+  function markCurrentUsed() {
+    if (!activeClue) return;
+    markUsed(activeClue.r, activeClue.c);
+  }
+
+  function handleCorrect() {
+    if (!activeClue) return;
+    award(activeClue.points);
+    markUsed(activeClue.r, activeClue.c);
+    closeQuestionView({ markUsedOnClose: false });
+  }
+
+  function handleWrong() {
+    if (!activeClue) return;
+    if (wrongSubtractsEl?.checked) {
+      award(-activeClue.points);
+    }
+    markUsed(activeClue.r, activeClue.c);
+    closeQuestionView({ markUsedOnClose: false });
+  }
+
+  // ---------- State actions ----------
   function markUsed(r, c) {
     if (!state.used?.[r]) return;
     state.used[r][c] = true;
@@ -247,16 +304,18 @@
     renderGrid();
   }
 
-  function award(delta) {
-    const idx = state.activeTeamIdx;
-    if (idx == null || !state.teams[idx]) return;
-
+  function awardToTeam(idx, delta) {
+    if (idx == null || !state.teams[idx] || !Number.isFinite(delta)) return;
     state.teams[idx].score += delta;
     saveState();
     renderTeams();
   }
 
-  // ---------- Teams ----------
+  function award(delta) {
+    const idx = state.activeTeamIdx;
+    awardToTeam(idx, delta);
+  }
+
   function setActiveTeam(idx) {
     if (!state.teams[idx]) return;
     state.activeTeamIdx = idx;
@@ -300,73 +359,95 @@
     renderTeams();
   }
 
+  function resetSession({ showOverlay = true } = {}) {
+    const ok = confirm("Reset local session state (used cells + team scores) for this board?");
+    if (!ok) return;
+    localStorage.removeItem(storageKey);
+    state = loadState();
+    activeClue = null;
+    renderTeams();
+    renderGrid();
+
+    window.dispatchEvent(
+      new CustomEvent("ahwa:boardSessionReset", { detail: { boardId: board.id } })
+    );
+
+    if (showOverlay && window.AHWA_BOARDS_START?.showOverlay) {
+      window.AHWA_BOARDS_START.showOverlay();
+    }
+
+    if (gameplayEl) gameplayEl.classList.add("blurred");
+    closeQuestionView({ markUsedOnClose: false });
+  }
+
+  function setTeamsCount(count, { resetUsed = true } = {}) {
+    const n = Math.min(6, Math.max(2, Number(count) || 2));
+    state.teams = defaultTeams(n);
+    state.activeTeamIdx = 0;
+    if (resetUsed) {
+      state.used = createUsedMatrix();
+    }
+    saveState();
+    renderTeams();
+    renderGrid();
+  }
+
   // ---------- Events ----------
   function bindEvents() {
-    // Modal close (matches your create.js pattern)
-    modal.addEventListener("click", (event) => {
-      const target = event.target;
-      if (target?.dataset?.closeModal !== undefined || target === modal) closeModal();
-    });
-
     document.addEventListener("keydown", (event) => {
-      if (!modal.classList.contains("open")) {
-        // team quick-select even when modal closed
-        if (/^[1-9]$/.test(event.key)) {
-          const idx = Number(event.key) - 1;
-          if (state.teams[idx]) setActiveTeam(idx);
-        }
-        return;
-      }
+      const isQuestionOpen = questionView?.classList.contains("open");
 
-      // When modal is open:
-      if (event.key === "Escape") closeModal();
-      if (event.key.toLowerCase() === "a") revealAnswer();
-      if (event.key.toLowerCase() === "c") handleCorrect();
-      if (event.key.toLowerCase() === "w") handleWrong();
-
-      // Team quick-select while modal open too
       if (/^[1-9]$/.test(event.key)) {
         const idx = Number(event.key) - 1;
         if (state.teams[idx]) setActiveTeam(idx);
       }
+
+      if (!isQuestionOpen) return;
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeQuestionView();
+      }
+
+      if (event.key === " " || event.code === "Space") {
+        event.preventDefault();
+        toggleReveal();
+      }
+
+      if (event.key.toLowerCase() === "c") {
+        event.preventDefault();
+        handleCorrect();
+      }
+
+      if (event.key.toLowerCase() === "w") {
+        event.preventDefault();
+        handleWrong();
+      }
     });
 
-    revealBtn.addEventListener("click", revealAnswer);
+    qvRevealBtn?.addEventListener("click", toggleReveal);
+    qvContinueBtn?.addEventListener("click", () => closeQuestionView());
+    qvMarkUsedBtn?.addEventListener("click", () => markCurrentUsed());
+    qvCorrectBtn?.addEventListener("click", handleCorrect);
+    qvWrongBtn?.addEventListener("click", handleWrong);
 
-    correctBtn.addEventListener("click", handleCorrect);
-    wrongBtn.addEventListener("click", handleWrong);
+    addTeamBtn?.addEventListener("click", addTeam);
+    renameTeamBtn?.addEventListener("click", renameTeam);
+    removeTeamBtn?.addEventListener("click", removeTeam);
 
-    addTeamBtn.addEventListener("click", addTeam);
-    renameTeamBtn.addEventListener("click", renameTeam);
-    removeTeamBtn.addEventListener("click", removeTeam);
-
-    resetLocalBtn.addEventListener("click", () => {
-      const ok = confirm("Reset local session state (used cells + team scores) for this board?");
-      if (!ok) return;
-      localStorage.removeItem(storageKey);
-      state = loadState();
-      renderTeams();
-      renderGrid();
-    });
+    resetLocalBtn?.addEventListener("click", () => resetSession());
   }
 
-  function handleCorrect() {
-    if (!activeClue) return;
-    award(activeClue.points);
-    markUsed(activeClue.r, activeClue.c);
-    closeModal();
-  }
+  // ---------- Global API for overlay ----------
+  const api = window.AHWA_BOARDS || {};
+  api.setTeamsCount = (count, opts) => setTeamsCount(count, opts || {});
+  api.resetSession = () => resetSession({ showOverlay: false });
+  api.getBoardMeta = () => ({ id: board.id, title: board.title });
+  window.AHWA_BOARDS = api;
 
-  function handleWrong() {
-    if (!activeClue) return;
-
-    if (wrongSubtractsEl?.checked) {
-      award(-activeClue.points);
-    }
-
-    markUsed(activeClue.r, activeClue.c);
-    closeModal();
-  }
+  window.dispatchEvent(
+    new CustomEvent("ahwa:boardReady", { detail: { boardId: board.id, title: board.title } })
+  );
 
   // ---------- Init ----------
   renderHeader();

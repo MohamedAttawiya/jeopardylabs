@@ -10,11 +10,25 @@
 
   <!-- Minimal “make it work” CSS just for the play screen -->
   <style>
-    /* --- Layout shell (matches your createboard-ish spacing) --- */
+    :root {
+      --teams-bar-height: 122px;
+      --board-headroom: clamp(120px, 24vh, 220px);
+    }
+
+    /* --- Layout shell --- */
+    body, html {
+      min-height: 100%;
+    }
+
     main.shell {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 24px 16px 64px;
+      padding: 16px 16px calc(var(--teams-bar-height) + 12px);
+      min-height: calc(100vh - var(--teams-bar-height));
+      height: calc(100vh - var(--teams-bar-height));
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
     .play-top {
@@ -23,7 +37,7 @@
       align-items: flex-start;
       justify-content: space-between;
       flex-wrap: wrap;
-      margin-bottom: 16px;
+      margin-bottom: 4px;
     }
 
     .board-meta {
@@ -74,22 +88,27 @@
       transform: translateY(1px);
     }
 
-    /* --- Two-column (board + sidebar) --- */
-    .play-layout {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 16px;
-      align-items: start;
+    /* --- Gameplay + board --- */
+    .gameplay {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    @media (max-width: 980px) {
-      .play-layout {
-        grid-template-columns: 1fr;
-      }
+    .gameplay.blurred {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
     }
 
-    /* --- Board grid --- */
-    .board-wrap {
+    .board-area {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
       border-radius: 16px;
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.12);
@@ -99,13 +118,15 @@
     .board-grid {
       display: grid;
       gap: 1px;
-      background: rgba(255,255,255,0.12); /* grid lines */
+      background: rgba(255,255,255,0.12);
+      flex: 1;
+      height: 100%;
+      grid-auto-rows: 1fr;
     }
 
     .cell {
       background: rgba(10, 14, 30, 0.85);
       color: #fff;
-      min-height: 86px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -118,15 +139,15 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.6px;
-      font-size: 14px;
-      min-height: 68px;
+      font-size: clamp(12px, 2vw, 16px);
       background: rgba(21, 27, 75, 0.95);
     }
 
     .cell.clue {
       cursor: pointer;
       font-weight: 800;
-      font-size: 28px;
+      font-size: clamp(22px, 4vw, 38px);
+      min-height: 64px;
     }
 
     .cell.clue.used {
@@ -140,48 +161,69 @@
       outline-offset: -2px;
     }
 
-    /* --- Sidebar / scoreboard --- */
-    .panel {
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-      overflow: hidden;
-    }
-
-    .panel-head {
-      padding: 14px 14px 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
+    /* --- Teams bar (bottom) --- */
+    .teams-bar {
+      position: fixed;
+      inset: auto 0 0 0;
+      height: var(--teams-bar-height);
+      background: rgba(10, 14, 30, 0.92);
+      border-top: 1px solid rgba(255,255,255,0.12);
       display: flex;
-      align-items: baseline;
-      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.35);
+      z-index: 8;
+    }
+
+    .teams-bar.blurred {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .team-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 200px;
+    }
+
+    .team-actions .buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .teams-scroll {
+      display: flex;
       gap: 10px;
-    }
-
-    .panel-head h3 {
-      margin: 0;
-    }
-
-    .panel-body {
-      padding: 14px;
+      overflow-x: auto;
+      padding: 4px 0;
+      flex: 1;
     }
 
     .teams {
       display: flex;
-      flex-direction: column;
       gap: 10px;
-      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .teams-scroll .teams {
+      flex-wrap: nowrap;
     }
 
     .team {
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
+      grid-template-columns: auto auto;
+      gap: 8px 10px;
       align-items: center;
-      padding: 10px;
+      padding: 10px 12px;
       border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.03);
       cursor: pointer;
+      min-width: 160px;
     }
 
     .team.active {
@@ -203,113 +245,162 @@
       border: 1px solid rgba(255,255,255,0.12);
       min-width: 78px;
       text-align: center;
+      justify-self: end;
     }
 
-    .team-actions {
+    .team-controls {
+      grid-column: 1 / -1;
       display: flex;
-      gap: 8px;
-      margin-top: 12px;
+      gap: 6px;
       flex-wrap: wrap;
     }
 
-    /* --- Modal (mirrors createboard structure/classes) --- */
-    .modal {
+    .team-controls button {
+      min-width: 68px;
+      padding: 6px 8px;
+    }
+
+    .hint {
+      opacity: 0.8;
+      font-size: 14px;
+    }
+
+    /* --- Start overlay --- */
+    .start-overlay {
       position: fixed;
       inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 20px;
+    }
+
+    .start-overlay.hidden {
       display: none;
-      z-index: 9999;
     }
 
-    .modal.open {
-      display: block;
-    }
-
-    .modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-    }
-
-    .modal-dialog {
-      position: relative;
-      max-width: 900px;
-      margin: 6vh auto;
+    .start-card {
+      background: rgba(10, 14, 30, 0.96);
       border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(21, 27, 75, 0.98);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+      padding: 18px 18px 16px;
+      width: min(520px, 100%);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     }
 
-    .modal-head {
+    .start-card h2 {
+      margin: 6px 0 12px;
+    }
+
+    .start-card label {
+      display: block;
+      margin: 12px 0 8px;
+      font-weight: 600;
+    }
+
+    .start-card select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.04);
+      color: #fff;
+    }
+
+    .start-card .actions {
+      margin-top: 16px;
       display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      justify-content: space-between;
-      padding: 14px 16px;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* --- Question view (full screen) --- */
+    .question-view {
+      position: fixed;
+      inset: 0;
+      z-index: 9;
+      background: rgba(10, 14, 30, 0.98);
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.08s ease;
+    }
+
+    .question-view.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .question-view header,
+    .question-view footer {
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.04);
       border-bottom: 1px solid rgba(255,255,255,0.12);
-      background: rgba(21, 27, 75, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .modal-head h3 {
-      margin: 4px 0 0;
+    .question-view footer {
+      border-top: 1px solid rgba(255,255,255,0.12);
+      border-bottom: none;
     }
 
-    .modal-body {
-      padding: 18px 16px 10px;
-    }
-
-    .qa {
+    .qv-crumb {
+      font-weight: 800;
+      font-size: 16px;
       text-align: center;
-      padding: 14px 12px;
+      flex: 1;
     }
 
-    .qa .points {
+    .question-body {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 20px;
+      gap: 18px;
+    }
+
+    .qv-question {
+      font-size: clamp(28px, 5vw, 48px);
       font-weight: 900;
-      opacity: 0.95;
-      margin-bottom: 10px;
+      line-height: 1.15;
     }
 
-    .qa .question {
-      font-size: 34px;
-      font-weight: 900;
-      line-height: 1.1;
-      margin: 0;
-    }
-
-    .qa .answer {
+    .qv-answer {
       display: none;
-      margin-top: 14px;
-      padding-top: 12px;
-      border-top: 2px dotted rgba(255,255,255,0.6);
-      font-size: 24px;
-      font-weight: 700;
-      opacity: 0.98;
+      font-size: clamp(24px, 4vw, 38px);
+      font-weight: 800;
+      color: #8be9ff;
+      margin-top: 10px;
     }
 
-    .qa.reveal .answer {
+    .question-view.revealed .qv-answer {
       display: block;
     }
 
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 16px;
-      border-top: 1px solid rgba(255,255,255,0.12);
-      background: rgba(10, 14, 30, 0.55);
-      flex-wrap: wrap;
+    @media (max-width: 720px) {
+      .team {
+        min-width: 140px;
+      }
+
+      .team-actions {
+        min-width: 180px;
+      }
+
+      .question-view header, .question-view footer {
+        align-items: flex-start;
+      }
     }
 
-    .award {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    /* Use your existing button classes if present; provide fallbacks */
+    /* --- Buttons --- */
     button.ghost, button.accent {
       cursor: pointer;
     }
@@ -338,7 +429,7 @@
 
       <div class="host-tools">
         <span class="pill">
-          <label title="When enabled, clicking a clue immediately marks it used after closing the modal.">
+          <label title="When enabled, clicking a clue immediately marks it used after closing the question view.">
             <input type="checkbox" id="auto-mark-used" checked />
             Auto-mark used
           </label>
@@ -355,73 +446,75 @@
       </div>
     </div>
 
-    <div class="play-layout">
+    <div id="gameplay" class="gameplay blurred">
       <!-- BOARD -->
-      <section class="board-wrap" aria-label="Board">
+      <section class="board-area" aria-label="Board">
         <div id="board-grid" class="board-grid" role="grid" aria-label="Jeopardy-style board"></div>
       </section>
-
-      <!-- SIDEBAR -->
-      <aside class="panel" aria-label="Scoreboard">
-        <div class="panel-head">
-          <h3>Teams</h3>
-          <span class="hint" id="active-team-hint">Pick an active team.</span>
-        </div>
-
-        <div class="panel-body">
-          <div class="team-actions">
-            <button type="button" class="accent" id="add-team">Add team</button>
-            <button type="button" class="ghost" id="rename-team">Rename</button>
-            <button type="button" class="ghost" id="remove-team">Remove</button>
-          </div>
-
-          <div class="teams" id="teams"></div>
-
-          <p class="hint" style="margin-top: 14px;">
-            Shortcuts:
-            <span class="kbd">1–9</span> pick team •
-            <span class="kbd">A</span> reveal answer •
-            <span class="kbd">C</span> correct •
-            <span class="kbd">W</span> wrong •
-            <span class="kbd">Esc</span> close
-          </p>
-        </div>
-      </aside>
     </div>
   </main>
 
-  <!-- MODAL (same overall structure as createboard.html) -->
-  <div id="cell-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal-backdrop" data-close-modal></div>
-
-    <div class="modal-dialog">
-      <header class="modal-head">
-        <div>
-          <p class="eyebrow" id="modal-category">Category</p>
-          <h3 id="modal-title">Clue</h3>
-        </div>
-        <button type="button" class="ghost" data-close-modal aria-label="Close">✕</button>
-      </header>
-
-      <div class="modal-body">
-        <div class="qa" id="qa">
-          <div class="points" id="modal-points">—</div>
-          <p class="question" id="modal-question">—</p>
-          <div class="answer" id="modal-answer">—</div>
-        </div>
+  <div id="teams-bar" class="teams-bar" aria-label="Scoreboard">
+    <div class="team-actions">
+      <div class="buttons">
+        <button type="button" class="accent" id="add-team">Add team</button>
+        <button type="button" class="ghost" id="rename-team">Rename</button>
+        <button type="button" class="ghost" id="remove-team">Remove</button>
       </div>
+      <span class="hint" id="active-team-hint">Pick an active team.</span>
+    </div>
 
-      <footer class="modal-actions">
-        <div class="award">
-          <button type="button" class="ghost" id="reveal-answer">Reveal answer</button>
-          <button type="button" class="accent" id="mark-correct">Correct</button>
-          <button type="button" class="ghost" id="mark-wrong">Wrong</button>
-        </div>
+    <div class="teams-scroll" aria-live="polite">
+      <div class="teams" id="teams"></div>
+    </div>
+  </div>
 
-        <div>
-          <button type="button" class="ghost" data-close-modal>Continue</button>
-        </div>
-      </footer>
+  <div id="question-view" class="question-view" aria-hidden="true">
+    <header>
+      <div class="qv-left">
+        <button type="button" class="ghost" id="qv-continue">Continue (Esc)</button>
+      </div>
+      <div class="qv-crumb" id="qv-crumb">Category • Points</div>
+      <div class="qv-actions">
+        <button type="button" class="accent" id="qv-correct">Correct</button>
+        <button type="button" class="ghost" id="qv-wrong">Wrong</button>
+        <button type="button" class="ghost" id="qv-mark-used">Mark used</button>
+        <button type="button" class="accent" id="qv-reveal">Reveal answer (Space)</button>
+      </div>
+    </header>
+
+    <div class="question-body">
+      <div>
+        <p class="qv-question" id="qv-question">—</p>
+        <p class="qv-answer" id="qv-answer">—</p>
+      </div>
+    </div>
+
+    <footer>
+      <div class="teams" id="teams-full"></div>
+      <p class="hint">Shortcuts: <span class="kbd">1–9</span> pick team • <span class="kbd">Space</span> reveal answer • <span class="kbd">Esc</span> close</p>
+    </footer>
+  </div>
+
+  <div id="start-overlay" class="start-overlay">
+    <div class="start-card">
+      <p class="eyebrow">Boards</p>
+      <h2 class="start-title" id="start-title">Loading…</h2>
+      <p class="hint">Choose how many teams are playing today.</p>
+
+      <label for="team-count">Number of teams</label>
+      <select id="team-count" name="team-count">
+        <option value="2">2 teams</option>
+        <option value="3">3 teams</option>
+        <option value="4">4 teams</option>
+        <option value="5">5 teams</option>
+        <option value="6">6 teams</option>
+      </select>
+
+      <div class="actions">
+        <button type="button" class="accent" id="start-game">Start</button>
+        <span class="hint">Press F11 for full-screen mode</span>
+      </div>
     </div>
   </div>
 
@@ -472,5 +565,6 @@
 
   <script src="/js/layout.js"></script>
   <script src="/js/board.js"></script>
+  <script src="/js/board-start-overlay.js"></script>
 </body>
 </html>
