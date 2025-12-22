@@ -1,0 +1,168 @@
+/* Minimal styling for Boards single-board screen */
+:root {
+  --board-bg: #0b2f6a;
+  --board-cell: #174ea6;
+  --board-cell-spent: #0f2c5c;
+  --board-text: #f8fafc;
+  --board-accent: #fbbf24;
+}
+
+.page-boards-game main {
+  gap: 14px;
+}
+
+.board-hero {
+  padding-top: 10px;
+}
+
+.board-stage {
+  background: #0f172a;
+  color: var(--board-text);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.board-status {
+  margin-bottom: 10px;
+  color: #cbd5e1;
+}
+
+.board-grid {
+  display: grid;
+  gap: 8px;
+  background: var(--board-bg);
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.board-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.board-row--header .board-cell {
+  background: #1e3a8a;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+.board-cell {
+  background: var(--board-cell);
+  color: var(--board-text);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px 10px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.board-cell:hover:not(.is-spent):not(.is-selected) {
+  transform: translateY(-2px);
+  border-color: rgba(251, 191, 36, 0.6);
+}
+
+.board-cell.is-selected {
+  outline: 3px solid rgba(251, 191, 36, 0.7);
+  outline-offset: 2px;
+  border-color: rgba(251, 191, 36, 0.9);
+}
+
+.board-cell.is-spent {
+  background: var(--board-cell-spent);
+  color: rgba(248, 250, 252, 0.5);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.board-cell:disabled {
+  cursor: not-allowed;
+}
+
+.board-bottom {
+  margin-top: 12px;
+  padding: 12px 8px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 12px;
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+}
+
+.teams-placeholder {
+  color: #cbd5e1;
+  text-align: center;
+}
+
+.board-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 50;
+}
+
+.board-modal[hidden] {
+  display: none;
+}
+
+.board-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.board-modal__dialog {
+  position: relative;
+  max-width: 720px;
+  width: min(720px, 96vw);
+  color: #0f172a;
+  background: #f8fafc;
+  border-radius: 16px;
+  z-index: 1;
+  padding: 20px;
+}
+
+.board-modal__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: baseline;
+}
+
+.board-modal__value {
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: #1e3a8a;
+}
+
+.board-modal__body {
+  margin: 14px 0;
+  min-height: 140px;
+}
+
+.board-modal__phase {
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.board-modal__text {
+  font-size: 1.15rem;
+  margin: 0 0 10px;
+}
+
+.board-modal__text.answer {
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.board-modal__footer {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

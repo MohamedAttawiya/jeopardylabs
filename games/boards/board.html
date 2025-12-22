@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boards | AHWA.GAMES</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="board.css">
+</head>
+<body class="page-boards-game" data-nav="boards">
+  <div data-include="header"></div>
+
+  <main class="shell">
+    <header class="board-hero">
+      <p class="eyebrow">Boards</p>
+      <h1 id="board-title">Loading board…</h1>
+      <p class="lede" id="board-subtitle">Host-driven play screen for Boards.</p>
+      <!-- TODO: Server-filled metadata (creator, updated_at, etc.) -->
+    </header>
+
+    <section class="board-stage card">
+      <div id="board-status" class="hint" aria-live="polite"></div>
+
+      <div class="board-grid" id="board-grid" role="grid" aria-label="Boards grid">
+        <!-- Filled by board.js -->
+      </div>
+
+      <div class="board-bottom" id="board-bottom">
+        <div class="teams-placeholder">
+          <p class="hint">TODO: Team controls and scorekeeping will appear here.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div data-include="footer"></div>
+
+  <div class="board-modal" id="board-modal" hidden>
+    <div class="board-modal__backdrop"></div>
+    <div class="board-modal__dialog card" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+      <header class="board-modal__header">
+        <div>
+          <p class="eyebrow" id="modal-category">Category</p>
+          <h2 id="modal-heading">Clue</h2>
+        </div>
+        <span class="board-modal__value" id="modal-value"></span>
+      </header>
+      <div class="board-modal__body">
+        <div class="board-modal__phase" id="modal-phase">Ready?</div>
+        <p class="board-modal__text" id="modal-question" hidden></p>
+        <p class="board-modal__text answer" id="modal-answer" hidden></p>
+      </div>
+      <footer class="board-modal__footer">
+        <button type="button" class="btn ghost" id="btn-reveal-question">Reveal Question</button>
+        <button type="button" class="btn primary" id="btn-reveal-answer" disabled>Reveal Answer</button>
+        <button type="button" class="btn" id="btn-close-modal">Close</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Placeholder; will be server-filled with board payload -->
+  <script type="application/json" id="board-data">{}</script>
+
+  <script src="../../js/layout.js"></script>
+  <script src="../../js/boards-data.js"></script>
+  <script src="./board.js"></script>
+</body>
+</html>
