@@ -37,8 +37,9 @@ body.page-board-play {
 }
 
 .board-head h1 {
-  margin: 4px 0 6px;
+  margin: 0;
   color: var(--primary);
+  font-size: clamp(16px, 2.4vw, 26px);
 }
 
 .board-area {
@@ -338,23 +339,61 @@ body.page-board-play {
   .gameplay {
     height: 100%;
     grid-template-rows: auto 1fr;
+    padding: 8px 10px;
   }
 
   .teams-strip {
     min-height: var(--teams-mobile-height);
+    align-items: stretch;
+    padding: 8px 10px;
   }
 
   .board-area {
     grid-template-rows: minmax(44px, 14vh) 1fr;
+    padding-inline: clamp(6px, 2vw, 12px);
   }
 
   .board-categories {
     font-size: clamp(11px, 3vw, 14px);
+    line-height: 1.2;
+    row-gap: 2px;
   }
 
   .board-grid button.cell {
     font-size: clamp(18px, 6vw, 28px);
     min-height: 0;
-    padding: 8px;
+    padding: 6px;
+    height: 100%;
+  }
+
+  .board-grid {
+    gap: clamp(4px, 1.2vw, 8px);
+    padding: clamp(4px, 1vw, 8px);
+  }
+
+  .board-categories .cat {
+    padding: 6px;
+    text-align: center;
+    word-break: break-word;
+  }
+
+  .teams-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    height: 100%;
+  }
+
+  .teams {
+    flex-wrap: nowrap;
+    gap: 10px;
+    height: 100%;
+    align-items: stretch;
+  }
+
+  .team {
+    width: clamp(160px, 60vw, 220px);
+    min-width: clamp(160px, 60vw, 220px);
+    height: 100%;
   }
 }
