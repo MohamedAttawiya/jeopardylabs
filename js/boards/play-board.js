@@ -148,6 +148,7 @@ function main() {
 
   categoriesEl.style.setProperty("--cols", board.cols);
   gridEl.style.setProperty("--cols", board.cols);
+  gridEl.style.setProperty("--rows", board.rows);
   categoriesEl.setAttribute("data-cols", board.cols);
 
   function renderCategories() {
