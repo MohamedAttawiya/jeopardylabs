@@ -129,6 +129,13 @@ export function initTeams({ boardId, mountEls = [], initialCount = clampTeamCoun
       if (!Number.isFinite(next) || next <= 0) return;
       scoreStep = next;
       renderAll();
-    }
+    },
+    resetTeams: (count) => {
+      const teamCount = clampTeamCount(count ?? teams.length);
+      teams = defaultTeams(teamCount);
+      saveTeamsState(keys.teams, teams);
+      renderAll();
+    },
+    getTeamCount: () => teams.length
   };
 }

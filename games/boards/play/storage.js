@@ -75,3 +75,14 @@ export const loadStartState = (key, fallbackCount = MIN_TEAMS) => {
 export const saveStartState = (key, state) => {
   localStorage.setItem(key, JSON.stringify(state));
 };
+
+export const clearBoardState = (keys) => {
+  if (!keys) return;
+  try {
+    localStorage.removeItem(keys.used);
+    localStorage.removeItem(keys.teams);
+    localStorage.removeItem(keys.start);
+  } catch {
+    /* ignore storage errors */
+  }
+};

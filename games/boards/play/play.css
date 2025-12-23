@@ -12,6 +12,9 @@ body.page-board-play {
   margin: 0;
   background: linear-gradient(160deg, rgba(30, 58, 138, 0.06), var(--neutral));
   color: var(--text);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 
   /* Prevent any child from widening the page */
   overflow-x: hidden;
@@ -25,8 +28,10 @@ body.page-board-play {
   /* IMPORTANT: there are only TWO children in <main>: gameplay + teams-strip */
   grid-template-rows: 1fr auto;
 
-  gap: 12px;
-  padding: 12px;
+  gap: clamp(8px, 2vw, 12px);
+  padding: clamp(6px, 2.4vw, 12px);
+  width: min(980px, 100vw);
+  margin: 0 auto;
 
   /* Prevent “wide teams” from making the page wider */
   max-width: 100%;
@@ -167,6 +172,7 @@ body.page-board-play {
   /* ensure strip never expands layout */
   max-width: 100%;
   overflow: hidden;
+  width: 100%;
 }
 
 /* The scroll viewport */
@@ -181,7 +187,8 @@ body.page-board-play {
 
   /* keep the scroll area from affecting parent sizing */
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-inline: clamp(4px, 2vw, 12px);
 }
 
 /* The actual row of teams (must be wider than viewport to scroll) */
@@ -198,7 +205,7 @@ body.page-board-play {
   /* center align the team cards while keeping natural width */
   width: max-content;
   max-width: none;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .team {
@@ -311,9 +318,40 @@ body.page-board-play {
   margin-top: 14px;
 }
 
+.start-actions.subtle {
+  justify-content: space-between;
+}
+
 .hint {
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+/* ---------- Menu toggle ---------- */
+.menu-toggle {
+  position: fixed;
+  bottom: clamp(10px, 3vh, 16px);
+  left: clamp(8px, 3vw, 14px);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding: 10px 8px;
+  border-radius: 12px;
+  background: var(--primary-deep);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: var(--shadow);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  z-index: 25;
+}
+
+.menu-toggle:hover {
+  transform: translateY(-1px);
+}
+
+.menu-toggle:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 /* ---------- Question view ---------- */
@@ -416,18 +454,21 @@ body.page-board-play {
     overflow: hidden;
 
     grid-template-rows: 1fr auto;
+    width: 100vw;
+    padding: clamp(4px, 3vw, 10px);
+    gap: clamp(6px, 2vw, 10px);
   }
 
   .gameplay {
     height: 100%;
-    padding: 8px 10px;
+    padding: 8px;
     min-height: 0;
     overflow: hidden;
   }
 
   .board-area {
     grid-template-rows: auto 1fr;
-    padding-inline: clamp(6px, 2vw, 12px);
+    padding-inline: clamp(4px, 2vw, 10px);
     min-height: 0;
     overflow: hidden;
   }
@@ -465,6 +506,7 @@ body.page-board-play {
     padding: 8px 10px;
     max-width: 100%;
     overflow: hidden;
+    width: 100%;
   }
 
   .teams-scroll {
