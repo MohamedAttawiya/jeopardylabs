@@ -12,6 +12,7 @@ export function initStartOverlay({
   const startState = loadStartState(keys.start);
   let currentTeamCount = startState.teamCount;
   let started = Boolean(startState.started);
+  const pageRoot = document.body;
 
   const container = overlayEls.container ?? document.getElementById("start-overlay");
   const selectEl = overlayEls.selectEl ?? container?.querySelector("#team-count");
@@ -36,6 +37,7 @@ export function initStartOverlay({
   const hide = () => {
     container?.classList.add("hidden");
     container?.setAttribute("aria-hidden", "true");
+    pageRoot?.classList.remove("overlay-visible");
     setBlur(false);
   };
 
@@ -43,6 +45,7 @@ export function initStartOverlay({
     container?.classList.remove("hidden");
     container?.setAttribute("aria-hidden", "false");
     setSelectValue(teamCount ?? currentTeamCount);
+    pageRoot?.classList.add("overlay-visible");
     setBlur(true);
   };
 

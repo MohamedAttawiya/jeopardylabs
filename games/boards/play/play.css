@@ -331,7 +331,7 @@ body.page-board-play {
 .menu-toggle {
   position: fixed;
   bottom: clamp(10px, 3vh, 16px);
-  left: clamp(8px, 3vw, 14px);
+  left: clamp(4px, 2vw, 10px);
   writing-mode: vertical-rl;
   text-orientation: mixed;
   display: inline-flex;
@@ -358,6 +358,10 @@ body.page-board-play {
 .menu-toggle:active {
   transform: translateY(0);
   box-shadow: none;
+}
+
+.overlay-visible .menu-toggle {
+  display: none;
 }
 
 /* ---------- Question view ---------- */
