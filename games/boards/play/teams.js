@@ -44,13 +44,17 @@ function renderTeams(container, teams, { onScore, onRename, scoreStep }) {
     const minus = document.createElement("button");
     minus.type = "button";
     minus.className = "ghost";
-    minus.textContent = `−${scoreStep}`;
+    minus.textContent = "−";
+    minus.setAttribute("aria-label", `Subtract ${scoreStep}`);
+    minus.title = `Subtract ${scoreStep}`;
     minus.addEventListener("click", () => onScore(idx, -scoreStep));
 
     const plus = document.createElement("button");
     plus.type = "button";
     plus.className = "accent";
-    plus.textContent = `+${scoreStep}`;
+    plus.textContent = "+";
+    plus.setAttribute("aria-label", `Add ${scoreStep}`);
+    plus.title = `Add ${scoreStep}`;
     plus.addEventListener("click", () => onScore(idx, scoreStep));
 
     controls.append(minus, plus);
