@@ -334,7 +334,13 @@ body.page-board-play {
   left: clamp(8px, 3vw, 14px);
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  padding: 10px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 6px;
+  min-width: auto;
+  width: clamp(36px, 8vw, 48px);
+  height: clamp(92px, 22vh, 140px);
   border-radius: 12px;
   background: var(--primary-deep);
   color: #fff;
