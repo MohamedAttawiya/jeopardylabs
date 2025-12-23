@@ -150,10 +150,11 @@ function main() {
 
     for (let r = 0; r < board.rows; r++) {
       for (let c = 0; c < board.cols; c++) {
+        const isUsed = usedCells.has(cellKey(r, c));
         const points = board.points[r] ?? (r + 1) * 100;
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "cell";
+        btn.className = "cell" + (isUsed ? " used" : "");
         btn.textContent = String(points);
         btn.dataset.row = String(r);
         btn.dataset.col = String(c);
@@ -168,6 +169,8 @@ function main() {
     if (usedCells.has(key)) return;
     usedCells.add(key);
     saveUsedSet(keys.used, usedCells);
+    const btn = gridEl.querySelector(`button[data-row="${r}"][data-col="${c}"]`);
+    if (btn) btn.classList.add("used");
   }
 
   function openQuestionView(r, c) {
