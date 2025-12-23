@@ -172,7 +172,7 @@
       items.forEach((board) => {
 	const card = document.createElement('a');
 	card.className = 'board-card card';
-	card.href = `/play/${encodeURIComponent(board.board_id)}`;
+	card.href = `/games/play/${encodeURIComponent(board.board_id)}`;
 	card.setAttribute('role', 'article');
 
 
