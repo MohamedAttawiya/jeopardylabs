@@ -170,8 +170,11 @@
       setStatus('');
 
       items.forEach((board) => {
-        const card = document.createElement('article');
-        card.className = 'board-card card';
+	const card = document.createElement('a');
+	card.className = 'board-card card';
+	card.href = `/play/${encodeURIComponent(board.board_id)}`;
+	card.setAttribute('role', 'article');
+
 
         const header = document.createElement('div');
         header.className = 'board-card__header';
