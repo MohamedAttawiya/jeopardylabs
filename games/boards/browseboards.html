@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boards | AHWA.GAMES</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body class="page-boards" data-nav="boards">
+  <div data-include="header"></div>
+
+  <main>
+    <section class="games shell boards-browser">
+      <div class="section-head minimal">
+        <div>
+          <h2>All Boards</h2>
+          <p class="hint">Browse public boards and discover new quizzes from the community.</p>
+        </div>
+        <div class="cta-buttons">
+          <a class="btn primary" href="../../createboard.html">Create Board</a>
+        </div>
+      </div>
+
+      <form id="boards-filters" class="boards-filters card" aria-label="Filter boards">
+        <div class="filters-row">
+          <label class="filter-field">
+            <span class="label">Status</span>
+            <select id="filter-status" name="status">
+              <option value="">All</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </label>
+          <label class="filter-field">
+            <span class="label">Language</span>
+            <select id="filter-lang" name="lang">
+              <option value="">All</option>
+              <option value="en">English</option>
+              <option value="ar">Arabic</option>
+            </select>
+          </label>
+          <div class="filter-field category-dropdown">
+            <div class="category-dropdown__header">
+              <span class="label">Categories</span>
+              <button type="button" id="category-toggle" class="category-dropdown__toggle" aria-expanded="false" aria-controls="filter-category">
+                Choose categories
+              </button>
+            </div>
+            <div id="filter-category" class="category-options category-dropdown__panel" aria-live="polite" hidden></div>
+          </div>
+        </div>
+      </form>
+
+      <div id="boards-status" class="boards-status hint">Loading boards…</div>
+      <div id="boards-grid" class="boards-grid" aria-live="polite"></div>
+
+      <div id="pagination" class="boards-pagination" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <div data-include="footer"></div>
+
+  <script src="../../js/layout.js"></script>
+  <script type="module">
+    const API_ENDPOINT = 'https://bnvzrbjkdg.execute-api.eu-central-1.amazonaws.com/prod/v1/boards';
+
+    const gridEl = document.getElementById('boards-grid');
+    const statusEl = document.getElementById('boards-status');
+    const paginationEl = document.getElementById('pagination');
+    const filtersForm = document.getElementById('boards-filters');
+    const statusSelect = document.getElementById('filter-status');
+    const langSelect = document.getElementById('filter-lang');
+    const categoryContainer = document.getElementById('filter-category');
+    const categoryDropdown = document.querySelector('.category-dropdown');
+    const categoryToggle = document.getElementById('category-toggle');
+
+    let state = {
+      page: 1,
+      page_size: 24,
+      status: '',
+      lang: '',
+      categories: [],
+    };
+
+    function formatDate(iso) {
+      if (!iso) return '';
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) return '';
+      return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+    }
+
+    function setStatus(message) {
+      if (!statusEl) return;
+      statusEl.textContent = message;
+      statusEl.style.display = message ? 'block' : 'none';
+    }
+
+    function clearGrid() {
+      if (gridEl) gridEl.innerHTML = '';
+    }
+
+    function buildQuery(params) {
+      const search = new URLSearchParams();
+      const page = Math.max(parseInt(params.page, 10) || 1, 1);
+      const pageSize = Math.max(parseInt(params.page_size, 10) || 24, 1);
+      search.set('page', page);
+      search.set('page_size', pageSize);
+      if (params.status) search.set('status', params.status);
+      if (params.lang) search.set('lang', params.lang);
+      if (params.categories && params.categories.length) search.set('category', params.categories.join(','));
+      return search.toString();
+    }
+
+    function updateUrl() {
+      const url = new URL(window.location);
+      const query = buildQuery(state);
+      url.search = query;
+      window.history.replaceState({}, '', url);
+    }
+
+    function readCache(key) {
+      try {
+        const raw = sessionStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+      } catch (err) {
+        console.warn('Unable to read cache', err);
+        return null;
+      }
+    }
+
+    function writeCache(key, value) {
+      try {
+        sessionStorage.setItem(key, JSON.stringify(value));
+      } catch (err) {
+        console.warn('Unable to write cache', err);
+      }
+    }
+
+    function createCategoryChips(categories) {
+      const chipWrap = document.createElement('div');
+      chipWrap.className = 'board-card__chips';
+
+      if (!categories || categories.length === 0) {
+        const chip = document.createElement('span');
+        chip.className = 'chip muted';
+        chip.textContent = 'Uncategorized';
+        chipWrap.appendChild(chip);
+        return chipWrap;
+      }
+
+      categories.forEach((cat) => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = cat.name || cat.slug || 'Category';
+        chipWrap.appendChild(chip);
+      });
+
+      return chipWrap;
+    }
+
+    function renderBoards(items = []) {
+      clearGrid();
+      if (!gridEl) return;
+
+      if (!items.length) {
+        setStatus('No boards found.');
+        return;
+      }
+
+      setStatus('');
+
+      items.forEach((board) => {
+        const card = document.createElement('article');
+        card.className = 'board-card card';
+
+        const header = document.createElement('div');
+        header.className = 'board-card__header';
+
+        const title = document.createElement('h3');
+        title.className = 'board-card__title';
+        title.textContent = board.title || board.board_id || 'Untitled Board';
+
+        const statusBadge = document.createElement('span');
+        statusBadge.className = `chip subtle ${board.status ? `status-${board.status}` : ''}`.trim();
+        statusBadge.textContent = board.status ? board.status : 'status';
+
+        header.append(title, statusBadge);
+
+        const chips = createCategoryChips(board.categories || []);
+
+        const metaList = document.createElement('dl');
+        metaList.className = 'board-card__meta';
+
+        const pairs = [
+          ['Questions', board.questions_per_category ? `${board.questions_per_category} per category` : '—'],
+          [
+            'Score range',
+            board.lowest_score != null && board.highest_score != null
+              ? `${board.lowest_score}–${board.highest_score} pts`
+              : '—',
+          ],
+          ['Owner', board.owner_id ? board.owner_id.replace(/^OWNER#/, '') : 'by user'],
+          ['Updated', formatDate(board.updated_at)],
+        ];
+
+        pairs.forEach(([label, value]) => {
+          const dt = document.createElement('dt');
+          dt.textContent = label;
+          const dd = document.createElement('dd');
+          dd.textContent = value || '—';
+          metaList.append(dt, dd);
+        });
+
+        card.append(header, chips, metaList);
+        gridEl.appendChild(card);
+      });
+    }
+
+    function computeWindow(page, pageCount) {
+      if (pageCount <= 9) return [1, pageCount];
+      const start = Math.max(1, Math.min(page - 4, pageCount - 8));
+      const end = Math.min(pageCount, start + 8);
+      return [start, end];
+    }
+
+    function createPageButton(pageNumber, currentPage) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pagination__btn';
+      btn.textContent = pageNumber;
+      btn.setAttribute('aria-label', `Page ${pageNumber}`);
+
+      if (pageNumber === currentPage) {
+        btn.disabled = true;
+        btn.setAttribute('aria-current', 'page');
+        btn.classList.add('is-active');
+        btn.tabIndex = -1;
+      } else {
+        btn.addEventListener('click', () => handlePageChange(pageNumber));
+      }
+
+      return btn;
+    }
+
+    function renderPagination(page, pageCount) {
+      if (!paginationEl) return;
+      paginationEl.innerHTML = '';
+
+      if (!pageCount || pageCount < 1) {
+        return;
+      }
+
+      const [start, end] = computeWindow(page, pageCount);
+
+      const addEllipsis = () => {
+        const span = document.createElement('span');
+        span.className = 'pagination__ellipsis';
+        span.textContent = '…';
+        paginationEl.appendChild(span);
+      };
+
+      if (pageCount === 1) {
+        paginationEl.appendChild(createPageButton(1, 1));
+        return;
+      }
+
+      if (start > 1) addEllipsis();
+
+      for (let i = start; i <= end; i += 1) {
+        paginationEl.appendChild(createPageButton(i, page));
+      }
+
+      if (end < pageCount) addEllipsis();
+    }
+
+    function ensureCategoryOptions(items = []) {
+      if (!categoryContainer) return;
+
+      categoryContainer.innerHTML = '';
+
+      const lookup = new Map();
+      items.forEach((board) => {
+        (board.categories || []).forEach((cat) => {
+          const slug = cat.slug || cat.name;
+          if (!slug) return;
+          lookup.set(slug, cat.name || slug);
+        });
+      });
+
+      state.categories.forEach((slug) => {
+        if (!lookup.has(slug)) lookup.set(slug, slug);
+      });
+
+      if (!lookup.size) {
+        const empty = document.createElement('p');
+        empty.className = 'hint';
+        empty.textContent = 'Categories will appear once loaded.';
+        categoryContainer.appendChild(empty);
+        return;
+      }
+
+      lookup.forEach((name, slug) => {
+        const label = document.createElement('label');
+        label.className = 'chip chip-checkbox';
+
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.name = 'category';
+        input.value = slug;
+        if (state.categories.includes(slug)) input.checked = true;
+
+        const text = document.createElement('span');
+        text.textContent = name;
+
+        label.append(input, text);
+        categoryContainer.appendChild(label);
+      });
+
+      updateCategoryLabel();
+    }
+
+    function updateCategoryLabel() {
+      if (!categoryToggle) return;
+      if (!state.categories.length) {
+        categoryToggle.textContent = 'All categories';
+      } else {
+        categoryToggle.textContent = `${state.categories.length} categor${state.categories.length === 1 ? 'y' : 'ies'} selected`;
+      }
+    }
+
+    let categoryOpen = false;
+
+    function isCategoryOpen() {
+      return categoryOpen;
+    }
+
+    function setCategoryDropdown(open) {
+      if (!categoryContainer || !categoryToggle) return;
+      categoryOpen = Boolean(open);
+      categoryContainer.hidden = !categoryOpen;
+      categoryToggle.setAttribute('aria-expanded', String(categoryOpen));
+      categoryContainer.classList.toggle('is-open', categoryOpen);
+      categoryDropdown?.classList.toggle('is-open', categoryOpen);
+    }
+
+    function toggleCategoryDropdown(forceState) {
+      const nextOpen = typeof forceState === 'boolean' ? forceState : !categoryOpen;
+      setCategoryDropdown(nextOpen);
+    }
+
+    function closeCategoryDropdown() {
+      setCategoryDropdown(false);
+    }
+
+    function populateFiltersFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      state = {
+        page: Math.max(parseInt(params.get('page'), 10) || 1, 1),
+        page_size: Math.max(parseInt(params.get('page_size'), 10) || 24, 1),
+        status: params.get('status') || '',
+        lang: params.get('lang') || '',
+        categories: (params.get('category') || '')
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean),
+      };
+
+      if (statusSelect) statusSelect.value = state.status;
+      if (langSelect) langSelect.value = state.lang;
+    }
+
+    function getFiltersFromForm() {
+      const nextState = {
+        page: 1,
+        page_size: state.page_size,
+        status: statusSelect ? statusSelect.value : '',
+        lang: langSelect ? langSelect.value : '',
+        categories: [],
+      };
+
+      if (categoryContainer) {
+        nextState.categories = Array.from(
+          categoryContainer.querySelectorAll('input[name="category"]:checked')
+        ).map((input) => input.value);
+      }
+
+      return nextState;
+    }
+
+    function handleFilterChange(event) {
+      event.preventDefault();
+      state = { ...state, ...getFiltersFromForm(), page: 1 };
+      updateCategoryLabel();
+      updateUrl();
+      closeCategoryDropdown();
+      loadBoards();
+    }
+
+    function handleDocumentClick(event) {
+      if (!categoryContainer || !categoryToggle) return;
+      if (
+        categoryOpen &&
+        !categoryContainer.contains(event.target) &&
+        !categoryToggle.contains(event.target)
+      ) {
+        closeCategoryDropdown();
+      }
+    }
+
+    function handleKeydown(event) {
+      if (event.key === 'Escape' && isCategoryOpen()) {
+        closeCategoryDropdown();
+        categoryToggle?.focus();
+      }
+    }
+
+    function handlePageChange(page) {
+      state = { ...state, page: Math.max(page, 1) };
+      updateUrl();
+      loadBoards();
+    }
+
+    async function loadBoards() {
+      if (!gridEl || !statusEl) return;
+
+      setStatus('Loading boards…');
+      clearGrid();
+      if (paginationEl) paginationEl.innerHTML = '';
+
+      const query = buildQuery(state);
+      const cacheKey = `boards::${query}`;
+
+      const cached = readCache(cacheKey);
+      if (cached) {
+        renderBoards(cached.items || []);
+        renderPagination(cached.page || state.page, cached.page_count || 1);
+        ensureCategoryOptions(cached.items || []);
+        updateUrl();
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_ENDPOINT}?${query}`);
+        if (!res.ok) throw new Error('Failed to fetch boards');
+        const data = await res.json();
+
+        state = {
+          ...state,
+          page: data.page || state.page,
+          page_size: data.page_size || state.page_size,
+        };
+
+        writeCache(cacheKey, data);
+        renderBoards(data.items || []);
+        renderPagination(state.page, data.page_count || 1);
+        ensureCategoryOptions(data.items || []);
+        updateUrl();
+      } catch (error) {
+        console.error(error);
+        setStatus('Unable to load boards right now. Please try again later.');
+      }
+    }
+
+    function initBoardsPage() {
+      populateFiltersFromQuery();
+      if (filtersForm) {
+        filtersForm.addEventListener('submit', handleFilterChange);
+        filtersForm.addEventListener('change', handleFilterChange);
+      }
+      if (categoryToggle) {
+        categoryToggle.addEventListener('click', (event) => {
+          event.stopPropagation();
+          toggleCategoryDropdown();
+        });
+        if (categoryContainer) {
+          categoryContainer.addEventListener('click', (event) => event.stopPropagation());
+        }
+        document.addEventListener('click', handleDocumentClick, true);
+        document.addEventListener('keydown', handleKeydown);
+      }
+      setCategoryDropdown(false);
+      updateCategoryLabel();
+      loadBoards();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initBoardsPage);
+    } else {
+      initBoardsPage();
+    }
+  </script>
+</body>
+</html>
