@@ -150,14 +150,11 @@ function main() {
 
     for (let r = 0; r < board.rows; r++) {
       for (let c = 0; c < board.cols; c++) {
-        const key = cellKey(r, c);
-        const used = usedCells.has(key);
         const points = board.points[r] ?? (r + 1) * 100;
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "cell" + (used ? " used" : "");
+        btn.className = "cell";
         btn.textContent = String(points);
-        btn.disabled = used;
         btn.dataset.row = String(r);
         btn.dataset.col = String(c);
         btn.addEventListener("click", () => handleCell(r, c));
@@ -168,13 +165,9 @@ function main() {
 
   function markUsed(r, c) {
     const key = cellKey(r, c);
+    if (usedCells.has(key)) return;
     usedCells.add(key);
     saveUsedSet(keys.used, usedCells);
-    const btn = gridEl.querySelector(`button[data-row="${r}"][data-col="${c}"]`);
-    if (btn) {
-      btn.classList.add("used");
-      btn.disabled = true;
-    }
   }
 
   function openQuestionView(r, c) {
@@ -208,8 +201,6 @@ function main() {
   }
 
   function handleCell(r, c) {
-    const key = cellKey(r, c);
-    if (usedCells.has(key)) return;
     markUsed(r, c);
     openQuestionView(r, c);
   }
