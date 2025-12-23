@@ -1,5 +1,7 @@
 // AHWA.GAMES — Boards Play (board + question flow)
+import { initStartOverlay } from "./overlay.js";
 import { initTeams } from "./teams.js";
+import { loadStartState, loadUsedSet, saveUsedSet, storageKeys } from "./storage.js";
 
 const DEMO_BOARD = {
   id: "demo-aws-4x4",
@@ -39,8 +41,6 @@ const DEMO_BOARD = {
     ]
   ]
 };
-
-const qs = (sel) => document.querySelector(sel);
 
 const boardDataTag = document.getElementById("board-data");
 
@@ -97,34 +97,12 @@ function normalizeBoard(raw) {
   };
 }
 
-function storageKeys(boardId) {
-  const base = `boards.play.${boardId}`;
-  return {
-    used: `${base}.used`
-  };
-}
-
-function loadUsed(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return new Set();
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return new Set();
-    return new Set(parsed);
-  } catch {
-    return new Set();
-  }
-}
-
-function saveUsed(key, usedSet) {
-  localStorage.setItem(key, JSON.stringify([...usedSet]));
-}
-
 function main() {
   const rawBoard = parseBoardData();
   const board = normalizeBoard(rawBoard);
   const keys = storageKeys(board.id);
-  const usedCells = loadUsed(keys.used);
+  const usedCells = loadUsedSet(keys.used);
+  const startState = loadStartState(keys.start);
   const bodyEl = document.body;
 
   const gameplayEl = document.getElementById("gameplay");
@@ -191,7 +169,7 @@ function main() {
   function markUsed(r, c) {
     const key = cellKey(r, c);
     usedCells.add(key);
-    saveUsed(keys.used, usedCells);
+    saveUsedSet(keys.used, usedCells);
     const btn = gridEl.querySelector(`button[data-row="${r}"][data-col="${c}"]`);
     if (btn) {
       btn.classList.add("used");
@@ -258,17 +236,26 @@ function main() {
   const teamsAPI = initTeams({
     boardId: board.id,
     mountEls: [document.getElementById("teams"), document.getElementById("teams-question")],
-    overlay: {
+    initialCount: startState.teamCount
+  });
+
+  teamsAPI.setScoreStep(baseStep);
+
+  initStartOverlay({
+    boardId: board.id,
+    overlayEls: {
       container: document.getElementById("start-overlay"),
       selectEl: document.getElementById("team-count"),
       startBtn: document.getElementById("start-game"),
       titleEl: document.getElementById("start-title")
     },
     blurTargets: [gameplayEl, teamsStrip],
-    boardTitle: board.title
+    boardTitle: board.title,
+    onStart: (teamCount) => {
+      teamsAPI.setTeamsCount(teamCount);
+      teamsAPI.setScoreStep(baseStep);
+    }
   });
-
-  teamsAPI.setScoreStep(baseStep);
 
   teamsAPI.ready.then(() => {
     gameplayEl?.classList.remove("is-blurred");
