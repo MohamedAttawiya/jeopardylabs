@@ -1,4 +1,10 @@
 [[redirects]]
+  from = "/games/play/:board_id/"
+  to = "https://bnvzrbjkdg.execute-api.eu-central-1.amazonaws.com/prod/v1/play/:board_id"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/games/play/:board_id"
   to = "https://bnvzrbjkdg.execute-api.eu-central-1.amazonaws.com/prod/v1/play/:board_id"
   status = 200
