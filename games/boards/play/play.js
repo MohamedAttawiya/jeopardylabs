@@ -1,7 +1,7 @@
 // AHWA.GAMES — Boards Play (board + question flow)
 import { initStartOverlay } from "./overlay.js";
 import { initTeams } from "./teams.js";
-import { loadStartState, loadUsedSet, saveUsedSet, storageKeys } from "./storage.js";
+import { clearBoardState, loadStartState, loadUsedSet, saveUsedSet, storageKeys } from "./storage.js";
 
 const DEMO_BOARD = {
   id: "demo-aws-4x4",
@@ -101,7 +101,7 @@ function main() {
   const rawBoard = parseBoardData();
   const board = normalizeBoard(rawBoard);
   const keys = storageKeys(board.id);
-  const usedCells = loadUsedSet(keys.used);
+  let usedCells = loadUsedSet(keys.used);
   const startState = loadStartState(keys.start);
   const bodyEl = document.body;
 
@@ -115,6 +115,7 @@ function main() {
   const answerEl = document.getElementById("qv-answer");
   const revealBtn = document.getElementById("qv-reveal");
   const continueBtn = document.getElementById("qv-continue");
+  const menuBtn = document.getElementById("menu-button");
 
   const titleEl = document.getElementById("board-title");
   const subtitleEl = document.getElementById("board-subtitle");
@@ -208,6 +209,15 @@ function main() {
     openQuestionView(r, c);
   }
 
+  function resetBoardState(teamCount) {
+    clearBoardState(keys);
+    usedCells = new Set();
+    renderGrid();
+    teamsAPI.resetTeams(teamCount);
+    teamsAPI.setScoreStep(baseStep);
+    closeQuestionView();
+  }
+
   document.addEventListener("keydown", (event) => {
     if (!questionView.classList.contains("open")) return;
     if (event.key === "Escape") {
@@ -235,21 +245,38 @@ function main() {
 
   teamsAPI.setScoreStep(baseStep);
 
-  initStartOverlay({
+  let overlayAPI;
+
+  const handleReset = (teamCount) => {
+    resetBoardState(teamCount);
+    overlayAPI?.show(teamCount);
+  };
+
+  overlayAPI = initStartOverlay({
     boardId: board.id,
     overlayEls: {
       container: document.getElementById("start-overlay"),
       selectEl: document.getElementById("team-count"),
       startBtn: document.getElementById("start-game"),
-      titleEl: document.getElementById("start-title")
+      titleEl: document.getElementById("start-title"),
+      resetBtn: document.getElementById("reset-board")
     },
     blurTargets: [gameplayEl, teamsStrip],
     boardTitle: board.title,
     onStart: (teamCount) => {
       teamsAPI.setTeamsCount(teamCount);
       teamsAPI.setScoreStep(baseStep);
-    }
+    },
+    onReset: handleReset
   });
+
+  const openMenu = () => {
+    closeQuestionView();
+    const count = teamsAPI.getTeamCount();
+    overlayAPI.show(count);
+  };
+
+  menuBtn?.addEventListener("click", openMenu);
 
   teamsAPI.ready.then(() => {
     gameplayEl?.classList.remove("is-blurred");
