@@ -30,12 +30,20 @@
         <div class="size-row">
           <label class="size-field">
             <span># of Categories</span>
-            <input type="number" id="columns" min="3" max="6" value="5" aria-label="Number of categories">
+            <select id="columns" aria-label="Number of categories">
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5" selected>5</option>
+            </select>
           </label>
           <span class="size-multiply" aria-hidden="true">×</span>
           <label class="size-field">
             <span># of Questions per Category</span>
-            <input type="number" id="rows" min="3" max="6" value="5" aria-label="Questions per category">
+            <select id="rows" aria-label="Questions per category">
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5" selected>5</option>
+            </select>
           </label>
         </div>
 
@@ -43,9 +51,30 @@
           <label>
             <span>Language</span>
             <select id="language">
-              <option value="en">English (en)</option>
+              <option value="en" selected>English (en)</option>
               <option value="es">Spanish (es)</option>
               <option value="fr">French (fr)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="language-row">
+          <label>
+            <span>Vibe:</span>
+            <select id="vibe" required>
+              <option value="trivia_mix">Trivia Mix</option>
+              <option value="general_knowledge">General Knowledge</option>
+              <option value="quick_easy">Quick &amp; Easy</option>
+              <option value="hard_mode">Hard Mode</option>
+              <option value="egypt_vibes">Egypt Vibes</option>
+              <option value="global_pop_culture">Global Pop Culture</option>
+              <option value="movie_night">Movie Night</option>
+              <option value="music_night">Music Night</option>
+              <option value="sports_night">Sports Night</option>
+              <option value="science">Science</option>
+              <option value="tech">Tech</option>
+              <option value="family_friendly">Family Friendly</option>
+              <option value="couples_date_night">Couples / Date Night</option>
             </select>
           </label>
         </div>
@@ -101,6 +130,12 @@
           </div>
         </div>
         <textarea id="json-output" readonly aria-label="Generated JSON"></textarea>
+        <div class="panel-subsection">
+          <h4>cURL preview</h4>
+          <p class="hint">Copy the API call if you want to trigger it manually.</p>
+          <textarea id="curl-output" readonly aria-label="Generated cURL command"></textarea>
+        </div>
+        <p class="hint" id="api-status" role="status"></p>
         <p class="hint" id="timer-note"></p>
       </div>
     </section>

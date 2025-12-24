@@ -9,13 +9,16 @@ const rowsInput = document.getElementById('rows');
 const colsInput = document.getElementById('columns');
 const titleInput = document.getElementById('title');
 const languageInput = document.getElementById('language');
+const vibeInput = document.getElementById('vibe');
 const categoriesContainer = document.getElementById('categories-container');
 const gridContainer = document.getElementById('grid-container');
 const gridCategoryRow = document.getElementById('grid-category-row');
 const toGridBtn = document.getElementById('to-grid');
 const toPreviewBtn = document.getElementById('to-preview');
 const jsonOutput = document.getElementById('json-output');
+const curlOutput = document.getElementById('curl-output');
 const timerNote = document.getElementById('timer-note');
+const apiStatus = document.getElementById('api-status');
 const copyJsonBtn = document.getElementById('copy-json');
 const downloadBtn = document.getElementById('download-json');
 const configError = document.getElementById('config-error');
@@ -27,25 +30,77 @@ const modalQuestion = document.getElementById('modal-question');
 const modalAnswer = document.getElementById('modal-answer');
 const modalSave = document.getElementById('modal-save');
 
-if (screens.config && rowsInput && colsInput && titleInput && languageInput && categoriesContainer && gridContainer && gridCategoryRow && toGridBtn && toPreviewBtn && jsonOutput && timerNote && copyJsonBtn && downloadBtn && configError && gridError && modal && modalTitle && modalCategory && modalQuestion && modalAnswer) {
+const API_ENDPOINT = 'https://bnvzrbjkdg.execute-api.eu-central-1.amazonaws.com/prod/v1/boards';
+
+if (
+  screens.config &&
+  rowsInput &&
+  colsInput &&
+  titleInput &&
+  languageInput &&
+  vibeInput &&
+  categoriesContainer &&
+  gridContainer &&
+  gridCategoryRow &&
+  toGridBtn &&
+  toPreviewBtn &&
+  jsonOutput &&
+  curlOutput &&
+  timerNote &&
+  copyJsonBtn &&
+  downloadBtn &&
+  configError &&
+  gridError &&
+  modal &&
+  modalTitle &&
+  modalCategory &&
+  modalQuestion &&
+  modalAnswer
+) {
   let previewTimer = null;
   let countdownInterval = null;
   let activeCell = null;
+  let lastPayload = null;
 
   const state = {
     title: '',
     language: 'en',
+    intent: 'trivia_mix',
     rows: 5,
     cols: 5,
     categories: [],
     grid: [],
   };
 
-  const clampSize = (val) => Math.min(6, Math.max(3, Number(val) || 3));
+  const clampSize = (val) => Math.min(5, Math.max(3, Number(val) || 3));
 
   function hasDuplicateCategories(names) {
     const normalized = names.map((name) => name.trim().toLowerCase()).filter(Boolean);
     return new Set(normalized).size !== normalized.length;
+  }
+
+  function createCategorySlug(name = '') {
+    return name
+      .trim()
+      .toLowerCase()
+      .replace(/&/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-{2,}/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+
+  function generateBoardId() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let suffix = '';
+    for (let i = 0; i < 4; i += 1) {
+      suffix += alphabet[Math.floor(Math.random() * alphabet.length)];
+    }
+    return `BRD-${y}${m}${d}-${suffix}`;
   }
 
   function generatePointsScheme(rows) {
@@ -73,6 +128,7 @@ if (screens.config && rowsInput && colsInput && titleInput && languageInput && c
   function showScreen(key) {
     if (!screens[key]) return;
     resetTimers();
+    if (key !== 'preview') setApiStatus('');
     Object.entries(screens).forEach(([name, el]) => {
       el.classList.toggle('active', name === key);
     });
@@ -98,15 +154,21 @@ if (screens.config && rowsInput && colsInput && titleInput && languageInput && c
     }, 10000);
   }
 
+  function ensureCategoryState() {
+    state.categories = Array.from({ length: state.cols }, (_, i) => state.categories?.[i] ?? '');
+  }
+
   function ensureGridState() {
     const rows = clampSize(state.rows);
     const cols = clampSize(state.cols);
+    ensureCategoryState();
     state.grid = Array.from({ length: rows }, (_, r) =>
       Array.from({ length: cols }, (_, c) => state.grid?.[r]?.[c] || { q: '', a: '' })
     );
   }
 
   function createCategoryInputs(cols) {
+    ensureCategoryState();
     categoriesContainer.innerHTML = '';
     for (let i = 0; i < cols; i += 1) {
       const wrapper = document.createElement('div');
@@ -198,13 +260,15 @@ if (screens.config && rowsInput && colsInput && titleInput && languageInput && c
   function updateStateFromConfig() {
     state.title = titleInput.value.trim();
     state.language = languageInput.value;
+    state.intent = vibeInput.value;
     state.rows = clampSize(rowsInput.value);
     state.cols = clampSize(colsInput.value);
     rowsInput.value = state.rows;
     colsInput.value = state.cols;
-    state.categories = Array.from(categoriesContainer.querySelectorAll('[data-category]')).map((input, idx) =>
-      input.value.trim() || `Category ${idx + 1}`
+    state.categories = Array.from(categoriesContainer.querySelectorAll('[data-category]')).map((input) =>
+      input.value.trim()
     );
+    ensureCategoryState();
     ensureGridState();
   }
 
@@ -212,26 +276,28 @@ if (screens.config && rowsInput && colsInput && titleInput && languageInput && c
     const title = titleInput.value.trim();
     const rows = clampSize(rowsInput.value);
     const cols = clampSize(colsInput.value);
+    const vibe = vibeInput.value;
     const categoryInputs = categoriesContainer.querySelectorAll('[data-category]');
     const categoryNames = Array.from(categoryInputs).map((input) => input.value.trim());
     const filledCategories = categoryInputs.length === cols && categoryNames.every((name) => name.length > 0);
     const hasDuplicates = hasDuplicateCategories(categoryNames);
 
-    return Boolean(title && rows && cols && filledCategories && !hasDuplicates);
+    return Boolean(title && rows && cols && filledCategories && !hasDuplicates && vibe);
   }
 
   function syncConfigValidity() {
     const title = titleInput.value.trim();
     const rows = clampSize(rowsInput.value);
     const cols = clampSize(colsInput.value);
+    const vibe = vibeInput.value;
     const categoryInputs = categoriesContainer.querySelectorAll('[data-category]');
     const categoryNames = Array.from(categoryInputs).map((input) => input.value.trim());
     const filledCategories = categoryInputs.length === cols && categoryNames.every((name) => name.length > 0);
     const hasDuplicates = hasDuplicateCategories(categoryNames);
 
     let message = '';
-    if (!title || !rows || !cols || !filledCategories) {
-      message = 'Please complete the title, grid size, and every category before continuing.';
+    if (!title || !rows || !cols || !filledCategories || !vibe) {
+      message = 'Please complete the title, grid size, vibe, and every category before continuing.';
     } else if (hasDuplicates) {
       message = 'Category names must be unique.';
     }
@@ -252,27 +318,43 @@ if (screens.config && rowsInput && colsInput && titleInput && languageInput && c
 
   function buildPayload() {
     const pointsScheme = generatePointsScheme(state.rows);
+    const categories = state.categories.map((name, idx) => {
+      const slug = createCategorySlug(name) || createCategorySlug(`category-${idx + 1}`);
+      return { name, slug };
+    });
+
     return {
-      pk: 'BOARD#<chosen by backend>',
-      sk: 'META',
-      title: state.title,
-      language: state.language,
-      categories: state.categories.map((name) => ({ name })),
-      points_scheme: pointsScheme,
+      board_id: generateBoardId(),
+      owner_id: 'OWNER#eg_user_0001',
+      intent: state.intent,
+      created_using: 'manual',
+      title: state.title || `${state.cols}x${state.rows} Trivia Board`,
+      status: 'draft',
+      language: state.language || 'en',
       version: 1,
+      categories,
+      points_scheme: pointsScheme,
       grid: state.grid.map((row, r) =>
         row.map((cell) => ({ points: pointsScheme[r], q: cell.q, a: cell.a }))
       ),
     };
   }
 
-  function updatePreview() {
-    const payload = buildPayload();
-    jsonOutput.value = JSON.stringify(payload, null, 2);
+  function buildCurlCommand(payload) {
+    const body = JSON.stringify(payload);
+    const escapedBody = body.replace(/'/g, "'\\''");
+    return `curl -X POST '${API_ENDPOINT}' -H 'Content-Type: application/json' -d '${escapedBody}'`;
+  }
+
+  function updatePreview(payload = null) {
+    const data = payload || buildPayload();
+    lastPayload = data;
+    jsonOutput.value = JSON.stringify(data, null, 2);
+    curlOutput.value = buildCurlCommand(data);
   }
 
   function handleDownload() {
-    const payload = buildPayload();
+    const payload = lastPayload || buildPayload();
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -286,6 +368,31 @@ if (screens.config && rowsInput && colsInput && titleInput && languageInput && c
     navigator.clipboard?.writeText(jsonOutput.value);
   }
 
+  function setApiStatus(message, isError = false) {
+    if (!apiStatus) return;
+    apiStatus.textContent = message;
+    apiStatus.classList.toggle('error', Boolean(isError));
+  }
+
+  async function submitBoard(payload) {
+    if (!payload) return;
+    setApiStatus(payload ? 'Saving board…' : '');
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Failed to save board');
+      setApiStatus('Board saved successfully!');
+    } catch (error) {
+      console.error(error);
+      setApiStatus('Unable to save board right now. Please try again.', true);
+    }
+  }
+
   function goToGrid() {
     if (!isConfigComplete()) {
       syncConfigValidity();
@@ -297,12 +404,20 @@ if (screens.config && rowsInput && colsInput && titleInput && languageInput && c
     syncGridValidity();
   }
 
-  function goToPreview() {
+  async function goToPreview() {
     if (!isGridComplete()) {
       syncGridValidity();
       return;
     }
-    updatePreview();
+    updateStateFromConfig();
+    const payload = buildPayload();
+    updatePreview(payload);
+    toPreviewBtn.disabled = true;
+    try {
+      await submitBoard(payload);
+    } finally {
+      toPreviewBtn.disabled = false;
+    }
     showScreen('preview');
   }
 
@@ -351,6 +466,10 @@ if (screens.config && rowsInput && colsInput && titleInput && languageInput && c
       state.rows = clampSize(rowsInput.value);
       rowsInput.value = state.rows;
       ensureGridState();
+      if (screens.grid.classList.contains('active')) {
+        renderGrid();
+        syncGridValidity();
+      }
       syncConfigValidity();
     });
 
@@ -358,13 +477,22 @@ if (screens.config && rowsInput && colsInput && titleInput && languageInput && c
       state.cols = clampSize(colsInput.value);
       colsInput.value = state.cols;
       createCategoryInputs(state.cols);
+      ensureGridState();
+      if (screens.grid.classList.contains('active')) {
+        renderGrid();
+        syncGridValidity();
+      }
       syncConfigValidity();
     });
 
-    [titleInput, languageInput].forEach((input) => input.addEventListener('input', syncConfigValidity));
+    [titleInput, languageInput, vibeInput].forEach((input) => input.addEventListener('input', syncConfigValidity));
 
     categoriesContainer.addEventListener('input', () => {
       state.categories = Array.from(categoriesContainer.querySelectorAll('[data-category]')).map((input) => input.value);
+      ensureCategoryState();
+      if (screens.grid.classList.contains('active')) {
+        renderGrid();
+      }
       syncConfigValidity();
     });
 
@@ -397,6 +525,11 @@ if (screens.config && rowsInput && colsInput && titleInput && languageInput && c
   }
 
   function init() {
+    state.rows = clampSize(rowsInput.value);
+    state.cols = clampSize(colsInput.value);
+    state.language = languageInput.value || state.language;
+    state.intent = vibeInput.value || state.intent;
+    ensureCategoryState();
     initCategories();
     ensureGridState();
     syncConfigValidity();

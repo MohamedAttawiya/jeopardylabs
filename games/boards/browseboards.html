@@ -17,6 +17,10 @@
           <p class="hint">Browse public boards and discover new quizzes from the community.</p>
         </div>
         <div class="cta-buttons">
+          <button type="button" class="btn ghost" id="reload-boards" aria-label="Reload boards">
+            <img src="../../assets/icons/reload.svg" alt="" aria-hidden="true">
+            <span>Reload</span>
+          </button>
           <a class="btn primary" href="../../createboard.html">Create Board</a>
         </div>
       </div>
@@ -73,6 +77,7 @@
     const categoryContainer = document.getElementById('filter-category');
     const categoryDropdown = document.querySelector('.category-dropdown');
     const categoryToggle = document.getElementById('category-toggle');
+    const reloadBtn = document.getElementById('reload-boards');
 
     let state = {
       page: 1,
@@ -93,6 +98,10 @@
       if (!statusEl) return;
       statusEl.textContent = message;
       statusEl.style.display = message ? 'block' : 'none';
+    }
+
+    function setLoadingState(isLoading) {
+      if (reloadBtn) reloadBtn.disabled = isLoading;
     }
 
     function clearGrid() {
@@ -423,9 +432,11 @@
       loadBoards();
     }
 
-    async function loadBoards() {
+    async function loadBoards(options = {}) {
+      const { forceRefresh = false } = options;
       if (!gridEl || !statusEl) return;
 
+      setLoadingState(true);
       setStatus('Loading boards…');
       clearGrid();
       if (paginationEl) paginationEl.innerHTML = '';
@@ -433,12 +444,13 @@
       const query = buildQuery(state);
       const cacheKey = `boards::${query}`;
 
-      const cached = readCache(cacheKey);
+      const cached = forceRefresh ? null : readCache(cacheKey);
       if (cached) {
         renderBoards(cached.items || []);
         renderPagination(cached.page || state.page, cached.page_count || 1);
         ensureCategoryOptions(cached.items || []);
         updateUrl();
+        setLoadingState(false);
         return;
       }
 
@@ -461,6 +473,8 @@
       } catch (error) {
         console.error(error);
         setStatus('Unable to load boards right now. Please try again later.');
+      } finally {
+        setLoadingState(false);
       }
     }
 
@@ -480,6 +494,11 @@
         }
         document.addEventListener('click', handleDocumentClick, true);
         document.addEventListener('keydown', handleKeydown);
+      }
+      if (reloadBtn) {
+        reloadBtn.addEventListener('click', () => {
+          loadBoards({ forceRefresh: true });
+        });
       }
       setCategoryDropdown(false);
       updateCategoryLabel();
