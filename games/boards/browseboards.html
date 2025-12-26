@@ -17,10 +17,6 @@
           <p class="hint">Browse public boards and discover new quizzes from the community.</p>
         </div>
         <div class="cta-buttons">
-          <button type="button" class="btn ghost" id="reload-boards" aria-label="Reload boards">
-            <img src="../../assets/icons/reload.svg" alt="" aria-hidden="true">
-            <span>Reload</span>
-          </button>
           <a class="btn primary" href="../../createboard.html">Create Board</a>
         </div>
       </div>
@@ -56,6 +52,12 @@
       </form>
 
       <div id="boards-status" class="boards-status hint">Loading boards…</div>
+      <div class="boards-list-head">
+        <h3>Boards</h3>
+        <button type="button" class="reload-button" id="reload-boards" aria-label="Reload boards">
+          <img src="../../assets/icons/reload.svg" alt="" aria-hidden="true">
+        </button>
+      </div>
       <div id="boards-grid" class="boards-grid" aria-live="polite"></div>
 
       <div id="pagination" class="boards-pagination" aria-live="polite"></div>
@@ -78,6 +80,7 @@
     const categoryDropdown = document.querySelector('.category-dropdown');
     const categoryToggle = document.getElementById('category-toggle');
     const reloadBtn = document.getElementById('reload-boards');
+    const initialReloadFlag = new URLSearchParams(window.location.search).get('reload');
 
     let state = {
       page: 1,
@@ -479,6 +482,12 @@
     }
 
     function initBoardsPage() {
+      const shouldForceRefresh = Boolean(initialReloadFlag);
+      if (initialReloadFlag) {
+        const url = new URL(window.location);
+        url.searchParams.delete('reload');
+        window.history.replaceState({}, '', url);
+      }
       populateFiltersFromQuery();
       if (filtersForm) {
         filtersForm.addEventListener('submit', handleFilterChange);
@@ -502,7 +511,7 @@
       }
       setCategoryDropdown(false);
       updateCategoryLabel();
-      loadBoards();
+      loadBoards({ forceRefresh: shouldForceRefresh });
     }
 
     if (document.readyState === 'loading') {

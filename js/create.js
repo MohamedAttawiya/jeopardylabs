@@ -1,28 +1,23 @@
 const screens = {
   config: document.getElementById('config-screen'),
   grid: document.getElementById('grid-screen'),
-  preview: document.getElementById('preview-screen'),
 };
 
 const navButtons = document.querySelectorAll('main [data-nav]');
 const rowsInput = document.getElementById('rows');
 const colsInput = document.getElementById('columns');
 const titleInput = document.getElementById('title');
+const ownerInput = document.getElementById('owner');
 const languageInput = document.getElementById('language');
 const vibeInput = document.getElementById('vibe');
 const categoriesContainer = document.getElementById('categories-container');
 const gridContainer = document.getElementById('grid-container');
 const gridCategoryRow = document.getElementById('grid-category-row');
 const toGridBtn = document.getElementById('to-grid');
-const toPreviewBtn = document.getElementById('to-preview');
-const jsonOutput = document.getElementById('json-output');
-const curlOutput = document.getElementById('curl-output');
-const timerNote = document.getElementById('timer-note');
-const apiStatus = document.getElementById('api-status');
-const copyJsonBtn = document.getElementById('copy-json');
-const downloadBtn = document.getElementById('download-json');
+const publishBtn = document.getElementById('publish-board');
 const configError = document.getElementById('config-error');
 const gridError = document.getElementById('grid-error');
+const gridStatus = document.getElementById('grid-status');
 const modal = document.getElementById('cell-modal');
 const modalTitle = document.getElementById('modal-title');
 const modalCategory = document.getElementById('modal-category');
@@ -37,33 +32,28 @@ if (
   rowsInput &&
   colsInput &&
   titleInput &&
+  ownerInput &&
   languageInput &&
   vibeInput &&
   categoriesContainer &&
   gridContainer &&
   gridCategoryRow &&
   toGridBtn &&
-  toPreviewBtn &&
-  jsonOutput &&
-  curlOutput &&
-  timerNote &&
-  copyJsonBtn &&
-  downloadBtn &&
+  publishBtn &&
   configError &&
   gridError &&
+  gridStatus &&
   modal &&
   modalTitle &&
   modalCategory &&
   modalQuestion &&
   modalAnswer
 ) {
-  let previewTimer = null;
-  let countdownInterval = null;
   let activeCell = null;
-  let lastPayload = null;
 
   const state = {
     title: '',
+    owner: '',
     language: 'en',
     intent: 'trivia_mix',
     rows: 5,
@@ -90,19 +80,6 @@ if (
       .replace(/(^-|-$)/g, '');
   }
 
-  function generateBoardId() {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let suffix = '';
-    for (let i = 0; i < 4; i += 1) {
-      suffix += alphabet[Math.floor(Math.random() * alphabet.length)];
-    }
-    return `BRD-${y}${m}${d}-${suffix}`;
-  }
-
   function generatePointsScheme(rows) {
     return Array.from({ length: rows }, (_, idx) => (idx + 1) * 100);
   }
@@ -113,45 +90,11 @@ if (
     return clean.length > 80 ? `${clean.slice(0, 77)}…` : clean;
   }
 
-  function resetTimers() {
-    if (previewTimer) {
-      clearTimeout(previewTimer);
-      previewTimer = null;
-    }
-    if (countdownInterval) {
-      clearInterval(countdownInterval);
-      countdownInterval = null;
-    }
-    timerNote.textContent = '';
-  }
-
   function showScreen(key) {
     if (!screens[key]) return;
-    resetTimers();
-    if (key !== 'preview') setApiStatus('');
     Object.entries(screens).forEach(([name, el]) => {
       el.classList.toggle('active', name === key);
     });
-
-    if (key === 'preview') {
-      startPreviewTimer();
-    }
-  }
-
-  function startPreviewTimer() {
-    let remaining = 10;
-    timerNote.textContent = `Returning to landing in ${remaining}s...`;
-    countdownInterval = setInterval(() => {
-      remaining -= 1;
-      timerNote.textContent = `Returning to landing in ${remaining}s...`;
-      if (remaining <= 0) {
-        clearInterval(countdownInterval);
-      }
-    }, 1000);
-
-    previewTimer = setTimeout(() => {
-      window.location.href = 'index.html';
-    }, 10000);
   }
 
   function ensureCategoryState() {
@@ -259,6 +202,7 @@ if (
 
   function updateStateFromConfig() {
     state.title = titleInput.value.trim();
+    state.owner = ownerInput.value.trim();
     state.language = languageInput.value;
     state.intent = vibeInput.value;
     state.rows = clampSize(rowsInput.value);
@@ -274,6 +218,7 @@ if (
 
   function isConfigComplete() {
     const title = titleInput.value.trim();
+    const owner = ownerInput.value.trim();
     const rows = clampSize(rowsInput.value);
     const cols = clampSize(colsInput.value);
     const vibe = vibeInput.value;
@@ -282,11 +227,12 @@ if (
     const filledCategories = categoryInputs.length === cols && categoryNames.every((name) => name.length > 0);
     const hasDuplicates = hasDuplicateCategories(categoryNames);
 
-    return Boolean(title && rows && cols && filledCategories && !hasDuplicates && vibe);
+    return Boolean(title && owner && rows && cols && filledCategories && !hasDuplicates && vibe);
   }
 
   function syncConfigValidity() {
     const title = titleInput.value.trim();
+    const owner = ownerInput.value.trim();
     const rows = clampSize(rowsInput.value);
     const cols = clampSize(colsInput.value);
     const vibe = vibeInput.value;
@@ -296,8 +242,8 @@ if (
     const hasDuplicates = hasDuplicateCategories(categoryNames);
 
     let message = '';
-    if (!title || !rows || !cols || !filledCategories || !vibe) {
-      message = 'Please complete the title, grid size, vibe, and every category before continuing.';
+    if (!title || !owner || !rows || !cols || !filledCategories || !vibe) {
+      message = 'Please complete the title, owner name, grid size, vibe, and every category before continuing.';
     } else if (hasDuplicates) {
       message = 'Category names must be unique.';
     }
@@ -312,8 +258,8 @@ if (
 
   function syncGridValidity() {
     const complete = isGridComplete();
-    toPreviewBtn.disabled = !complete;
-    gridError.textContent = complete ? '' : 'Fill every question and answer before moving on.';
+    publishBtn.disabled = !complete;
+    gridError.textContent = complete ? '' : 'Fill every question and answer before publishing.';
   }
 
   function buildPayload() {
@@ -322,13 +268,20 @@ if (
       const slug = createCategorySlug(name) || createCategorySlug(`category-${idx + 1}`);
       return { name, slug };
     });
+    const ownerSlug = state.owner
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .replace(/_{2,}/g, '_')
+      || 'user';
+    const ownerId = `OWNER#${ownerSlug}`;
 
     return {
-      board_id: generateBoardId(),
-      owner_id: 'OWNER#eg_user_0001',
+      owner_id: ownerId,
       intent: state.intent,
       created_using: 'manual',
-      title: state.title || `${state.cols}x${state.rows} Trivia Board`,
+      title: `${state.cols}x${state.rows} Trivia Board`,
       status: 'draft',
       language: state.language || 'en',
       version: 1,
@@ -340,57 +293,10 @@ if (
     };
   }
 
-  function buildCurlCommand(payload) {
-    const body = JSON.stringify(payload);
-    const escapedBody = body.replace(/'/g, "'\\''");
-    return `curl -X POST '${API_ENDPOINT}' -H 'Content-Type: application/json' -d '${escapedBody}'`;
-  }
-
-  function updatePreview(payload = null) {
-    const data = payload || buildPayload();
-    lastPayload = data;
-    jsonOutput.value = JSON.stringify(data, null, 2);
-    curlOutput.value = buildCurlCommand(data);
-  }
-
-  function handleDownload() {
-    const payload = lastPayload || buildPayload();
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${(state.title || 'board').toLowerCase().replace(/\s+/g, '-')}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function handleCopy() {
-    navigator.clipboard?.writeText(jsonOutput.value);
-  }
-
-  function setApiStatus(message, isError = false) {
-    if (!apiStatus) return;
-    apiStatus.textContent = message;
-    apiStatus.classList.toggle('error', Boolean(isError));
-  }
-
-  async function submitBoard(payload) {
-    if (!payload) return;
-    setApiStatus(payload ? 'Saving board…' : '');
-    try {
-      const res = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('Failed to save board');
-      setApiStatus('Board saved successfully!');
-    } catch (error) {
-      console.error(error);
-      setApiStatus('Unable to save board right now. Please try again.', true);
-    }
+  function setGridStatus(message, isError = false) {
+    if (!gridStatus) return;
+    gridStatus.textContent = message;
+    gridStatus.classList.toggle('error', Boolean(isError));
   }
 
   function goToGrid() {
@@ -401,24 +307,41 @@ if (
     updateStateFromConfig();
     renderGrid();
     showScreen('grid');
+    setGridStatus('');
+    gridError.textContent = '';
     syncGridValidity();
   }
 
-  async function goToPreview() {
+  async function publishBoard() {
     if (!isGridComplete()) {
       syncGridValidity();
       return;
     }
+
     updateStateFromConfig();
     const payload = buildPayload();
-    updatePreview(payload);
-    toPreviewBtn.disabled = true;
+    publishBtn.disabled = true;
+    setGridStatus('Publishing board…');
+    gridError.textContent = '';
+
     try {
-      await submitBoard(payload);
+      const res = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error('Failed to publish board');
+      window.location.href = 'board-published.html';
+    } catch (error) {
+      console.error(error);
+      gridError.textContent = 'Unable to publish board right now. Please try again.';
+      setGridStatus('');
     } finally {
-      toPreviewBtn.disabled = false;
+      publishBtn.disabled = false;
     }
-    showScreen('preview');
   }
 
   function closeModal() {
@@ -485,7 +408,9 @@ if (
       syncConfigValidity();
     });
 
-    [titleInput, languageInput, vibeInput].forEach((input) => input.addEventListener('input', syncConfigValidity));
+    [titleInput, ownerInput, languageInput, vibeInput].forEach((input) =>
+      input.addEventListener('input', syncConfigValidity)
+    );
 
     categoriesContainer.addEventListener('input', () => {
       state.categories = Array.from(categoriesContainer.querySelectorAll('[data-category]')).map((input) => input.value);
@@ -519,14 +444,13 @@ if (
     });
 
     toGridBtn.addEventListener('click', goToGrid);
-    toPreviewBtn.addEventListener('click', goToPreview);
-    downloadBtn.addEventListener('click', handleDownload);
-    copyJsonBtn.addEventListener('click', handleCopy);
+    publishBtn.addEventListener('click', publishBoard);
   }
 
   function init() {
     state.rows = clampSize(rowsInput.value);
     state.cols = clampSize(colsInput.value);
+    state.owner = ownerInput.value.trim() || state.owner;
     state.language = languageInput.value || state.language;
     state.intent = vibeInput.value || state.intent;
     ensureCategoryState();

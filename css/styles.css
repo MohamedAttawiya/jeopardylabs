@@ -436,6 +436,11 @@ main {
 
 .boards-browser { gap: 16px; }
 .boards-status { margin: 4px 0; }
+.boards-list-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.boards-list-head h3 { margin: 0; }
+.reload-button { display: inline-flex; align-items: center; justify-content: center; padding: 8px; width: 38px; height: 38px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08); }
+.reload-button img { width: 18px; height: 18px; }
+.reload-button:disabled { opacity: 0.55; cursor: not-allowed; }
 .boards-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .board-card {
   display: grid;

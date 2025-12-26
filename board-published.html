@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Board Published</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="page-published">
+  <main class="shell" style="padding: 80px 16px; text-align: center;">
+    <div class="card" style="margin: 0 auto; max-width: 520px; padding: 48px 32px;">
+      <h1>Board Published</h1>
+      <p class="hint" style="margin-top: 12px;">Redirecting you to browse boards…</p>
+    </div>
+  </main>
+
+  <script>
+    setTimeout(() => {
+      window.location.href = 'games/boards/browseboards.html?reload=1';
+    }, 3000);
+  </script>
+</body>
+</html>

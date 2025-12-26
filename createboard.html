@@ -25,6 +25,10 @@
             <span>Board title</span>
             <input type="text" id="title" placeholder="E.g. Science &amp; History" required>
           </label>
+          <label class="title-field">
+            <span>Owner Name</span>
+            <input type="text" id="owner" placeholder="E.g. Alex" required>
+          </label>
         </div>
 
         <div class="size-row">
@@ -106,37 +110,10 @@
         <div id="grid-container" class="grid-cards" aria-live="polite"></div>
       </div>
       <p class="error" id="grid-error" role="alert" aria-live="polite"></p>
+      <p class="hint" id="grid-status" role="status" aria-live="polite"></p>
       <div class="step-actions step-actions-bottom">
         <button type="button" class="ghost" data-nav="config">Back</button>
-        <button type="button" class="accent" id="to-preview">Next</button>
-      </div>
-    </section>
-
-    <section id="preview-screen" class="screen">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Step 3</p>
-          <h2>JSON preview</h2>
-          <p class="lede">This view will return to the landing screen after 10 seconds.</p>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h3>Payload</h3>
-          <p class="hint">Copy or download the JSON if you need it.</p>
-          <div class="inline-actions">
-            <button type="button" class="ghost" id="copy-json">Copy</button>
-            <button type="button" class="accent" id="download-json">Download</button>
-          </div>
-        </div>
-        <textarea id="json-output" readonly aria-label="Generated JSON"></textarea>
-        <div class="panel-subsection">
-          <h4>cURL preview</h4>
-          <p class="hint">Copy the API call if you want to trigger it manually.</p>
-          <textarea id="curl-output" readonly aria-label="Generated cURL command"></textarea>
-        </div>
-        <p class="hint" id="api-status" role="status"></p>
-        <p class="hint" id="timer-note"></p>
+        <button type="button" class="accent" id="publish-board">Publish</button>
       </div>
     </section>
   </main>
