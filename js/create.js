@@ -14,6 +14,7 @@ const categoriesContainer = document.getElementById('categories-container');
 const gridContainer = document.getElementById('grid-container');
 const gridCategoryRow = document.getElementById('grid-category-row');
 const toGridBtn = document.getElementById('to-grid');
+const useAiBtn = document.getElementById('use-ai');
 const publishBtn = document.getElementById('publish-board');
 const configError = document.getElementById('config-error');
 const gridError = document.getElementById('grid-error');
@@ -24,8 +25,15 @@ const modalCategory = document.getElementById('modal-category');
 const modalQuestion = document.getElementById('modal-question');
 const modalAnswer = document.getElementById('modal-answer');
 const modalSave = document.getElementById('modal-save');
+const aiModal = document.getElementById('ai-modal');
+const aiPrompt = document.getElementById('ai-prompt');
+const aiDescInput = document.getElementById('ai-desc');
+const aiHardnessSelect = document.getElementById('ai-hardness');
+const copyAiPromptBtn = document.getElementById('copy-ai-prompt');
+const continueAiBtn = document.getElementById('continue-to-ai');
 
 const API_ENDPOINT = 'https://bnvzrbjkdg.execute-api.eu-central-1.amazonaws.com/prod/v1/boards';
+const LOCAL_STORAGE_KEY = 'ahwa_create_config';
 
 if (
   screens.config &&
@@ -78,6 +86,17 @@ if (
       .replace(/[^a-z0-9-]/g, '')
       .replace(/-{2,}/g, '-')
       .replace(/(^-|-$)/g, '');
+  }
+
+  function createOwnerId(name = '') {
+    const ownerSlug = name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .replace(/_{2,}/g, '_')
+      || 'user';
+    return `OWNER#${ownerSlug}`;
   }
 
   function generatePointsScheme(rows) {
@@ -249,6 +268,9 @@ if (
     }
 
     toGridBtn.disabled = Boolean(message);
+    if (useAiBtn) {
+      useAiBtn.disabled = Boolean(message);
+    }
     configError.textContent = message;
   }
 
@@ -268,14 +290,7 @@ if (
       const slug = createCategorySlug(name) || createCategorySlug(`category-${idx + 1}`);
       return { name, slug };
     });
-    const ownerSlug = state.owner
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .replace(/_{2,}/g, '_')
-      || 'user';
-    const ownerId = `OWNER#${ownerSlug}`;
+    const ownerId = createOwnerId(state.owner);
 
     return {
       owner_id: ownerId,
@@ -338,6 +353,130 @@ if (
       setGridStatus('');
     } finally {
       publishBtn.disabled = false;
+    }
+  }
+
+  function closeAiModal() {
+    aiModal?.classList.remove('open');
+  }
+
+  function buildAiPrompt(config, options = {}) {
+    const description = (options.description || '').replace(/\s+/g, ' ').trim();
+    const hardness = String(options.hardness || '3');
+    const hardnessMap = {
+      '1': 'very easy/common knowledge',
+      '2': 'easy to medium',
+      '3': 'balanced',
+      '4': 'hard with nuance',
+      '5': 'very hard but fair (expert-level)',
+    };
+
+    const pointsScheme = generatePointsScheme(config.rows);
+    const categoriesList = config.categories
+      .map((name, idx) => `    {"name":"${name}","slug":"${createCategorySlug(name) || `category-${idx + 1}`}"}`)
+      .join(',\n');
+    const gridRows = Array.from({ length: config.rows }, (_, r) => {
+      const cells = Array.from({ length: config.cols }, () => `      {"points":${pointsScheme[r]},"q":"","a":""}`);
+      return `    [\n${cells.join(',\n')}\n    ]`;
+    }).join(',\n');
+
+    return [
+      'You are generating a Jeopardy-style trivia board JSON. Follow these rules strictly:',
+      `- Categories count (C) = ${config.cols}. Questions per category (R) = ${config.rows}. Grid must be R x C.`,
+      `- points_scheme length must be ${config.rows} and equal exactly: [${pointsScheme.join(',')}].`,
+      '- Each grid row must use the matching points value from points_scheme for that row.',
+      '- Questions must get harder as points increase within a category.',
+      `- Overall hardness baseline: ${hardness}/5 (${hardnessMap[hardness] || hardnessMap['3']}), while still scaling difficulty up with higher points.`,
+      `- Use language: ${config.language}. All questions and answers must be in this language.`,
+      '- Avoid controversial politics/religion, copyrighted lyrics, and keep answers short.',
+      description ? `- Incorporate this description/context: ${description}` : null,
+      '- Category slugs must be kebab-case with only Latin letters/numbers; generate them if missing.',
+      'Return STRICT JSON ONLY (no markdown, no backticks) using this exact key order and schema:',
+      '{',
+      `  "owner_id": "${createOwnerId(config.owner)}",`,
+      `  "intent": "${config.intent}",`,
+      '  "created_using": "ai",',
+      `  "title": "${config.title}",`,
+      '  "status": "draft",',
+      `  "language": "${config.language}",`,
+      '  "version": 1,',
+      '  "categories": [',
+      categoriesList,
+      '  ],',
+      `  "points_scheme": [${pointsScheme.join(',')}],`,
+      '  "grid": [',
+      gridRows,
+      '  ]',
+      '}',
+      'Return ONLY the JSON object.',
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  function regenerateAiPrompt(config) {
+    if (!aiPrompt) return;
+    const aiOptions = {
+      description: aiDescInput?.value || '',
+      hardness: aiHardnessSelect?.value || '3',
+    };
+    aiPrompt.value = buildAiPrompt(config, aiOptions);
+  }
+
+  function openAiModal() {
+    if (!isConfigComplete()) {
+      syncConfigValidity();
+      return;
+    }
+
+    updateStateFromConfig();
+    let storedConfig;
+    try {
+      storedConfig = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || 'null');
+    } catch (error) {
+      storedConfig = null;
+    }
+
+    const config = {
+      title: state.title,
+      owner: state.owner,
+      language: state.language,
+      intent: state.intent,
+      rows: state.rows,
+      cols: state.cols,
+      categories: state.categories.slice(0, state.cols),
+    };
+
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(config));
+    } catch (error) {
+      console.warn('Unable to save config to storage', error);
+    }
+
+    if (aiPrompt) {
+      if (aiDescInput) {
+        aiDescInput.value = storedConfig?.ai_description || '';
+      }
+      if (aiHardnessSelect) {
+        aiHardnessSelect.value = storedConfig?.ai_hardness || aiHardnessSelect.value || '3';
+      }
+      regenerateAiPrompt(config);
+      aiPrompt.focus();
+    }
+    aiModal?.classList.add('open');
+  }
+
+  function copyAiPrompt() {
+    if (!aiPrompt) return;
+    aiPrompt.select();
+    aiPrompt.setSelectionRange(0, aiPrompt.value.length);
+
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(aiPrompt.value).catch(() => {
+        document.execCommand('copy');
+      });
+    } else {
+      document.execCommand('copy');
     }
   }
 
@@ -434,14 +573,73 @@ if (
       }
     });
 
+    aiModal?.addEventListener('click', (event) => {
+      if (event.target.dataset.closeModal !== undefined || event.target === aiModal) {
+        closeAiModal();
+      }
+    });
+
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && modal.classList.contains('open')) {
         closeModal();
       }
+      if (event.key === 'Escape' && aiModal?.classList.contains('open')) {
+        closeAiModal();
+      }
     });
 
     toGridBtn.addEventListener('click', goToGrid);
+    useAiBtn?.addEventListener('click', openAiModal);
     publishBtn.addEventListener('click', publishBoard);
+    copyAiPromptBtn?.addEventListener('click', copyAiPrompt);
+    continueAiBtn?.addEventListener('click', () => {
+      if (!isConfigComplete()) {
+        syncConfigValidity();
+        return;
+      }
+      updateStateFromConfig();
+      const aiConfig = {
+        title: state.title,
+        owner: state.owner,
+        language: state.language,
+        intent: state.intent,
+        rows: state.rows,
+        cols: state.cols,
+        categories: state.categories.slice(0, state.cols),
+        ai_description: aiDescInput?.value || '',
+        ai_hardness: aiHardnessSelect?.value || '3',
+      };
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(aiConfig));
+      } catch (error) {
+        console.warn('Unable to save config to storage', error);
+      }
+      window.location.href = 'create-ai.html';
+    });
+
+    aiDescInput?.addEventListener('input', () => {
+      regenerateAiPrompt({
+        title: state.title,
+        owner: state.owner,
+        language: state.language,
+        intent: state.intent,
+        rows: state.rows,
+        cols: state.cols,
+        categories: state.categories.slice(0, state.cols),
+      });
+    });
+
+    aiHardnessSelect?.addEventListener('change', () => {
+      regenerateAiPrompt({
+        title: state.title,
+        owner: state.owner,
+        language: state.language,
+        intent: state.intent,
+        rows: state.rows,
+        cols: state.cols,
+        categories: state.categories.slice(0, state.cols),
+      });
+    });
   }
 
   function init() {
