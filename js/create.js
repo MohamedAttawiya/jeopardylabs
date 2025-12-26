@@ -27,6 +27,8 @@ const modalAnswer = document.getElementById('modal-answer');
 const modalSave = document.getElementById('modal-save');
 const aiModal = document.getElementById('ai-modal');
 const aiPrompt = document.getElementById('ai-prompt');
+const aiDescInput = document.getElementById('ai-desc');
+const aiHardnessSelect = document.getElementById('ai-hardness');
 const copyAiPromptBtn = document.getElementById('copy-ai-prompt');
 const continueAiBtn = document.getElementById('continue-to-ai');
 
@@ -358,7 +360,17 @@ if (
     aiModal?.classList.remove('open');
   }
 
-  function buildAiPrompt(config) {
+  function buildAiPrompt(config, options = {}) {
+    const description = (options.description || '').replace(/\s+/g, ' ').trim();
+    const hardness = String(options.hardness || '3');
+    const hardnessMap = {
+      '1': 'very easy/common knowledge',
+      '2': 'easy to medium',
+      '3': 'balanced',
+      '4': 'hard with nuance',
+      '5': 'very hard but fair (expert-level)',
+    };
+
     const pointsScheme = generatePointsScheme(config.rows);
     const categoriesList = config.categories
       .map((name, idx) => `    {"name":"${name}","slug":"${createCategorySlug(name) || `category-${idx + 1}`}"}`)
@@ -374,8 +386,10 @@ if (
       `- points_scheme length must be ${config.rows} and equal exactly: [${pointsScheme.join(',')}].`,
       '- Each grid row must use the matching points value from points_scheme for that row.',
       '- Questions must get harder as points increase within a category.',
+      `- Overall hardness baseline: ${hardness}/5 (${hardnessMap[hardness] || hardnessMap['3']}), while still scaling difficulty up with higher points.`,
       `- Use language: ${config.language}. All questions and answers must be in this language.`,
       '- Avoid controversial politics/religion, copyrighted lyrics, and keep answers short.',
+      description ? `- Incorporate this description/context: ${description}` : null,
       '- Category slugs must be kebab-case with only Latin letters/numbers; generate them if missing.',
       'Return STRICT JSON ONLY (no markdown, no backticks) using this exact key order and schema:',
       '{',
@@ -395,7 +409,18 @@ if (
       '  ]',
       '}',
       'Return ONLY the JSON object.',
-    ].join('\n');
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  function regenerateAiPrompt(config) {
+    if (!aiPrompt) return;
+    const aiOptions = {
+      description: aiDescInput?.value || '',
+      hardness: aiHardnessSelect?.value || '3',
+    };
+    aiPrompt.value = buildAiPrompt(config, aiOptions);
   }
 
   function openAiModal() {
@@ -405,6 +430,13 @@ if (
     }
 
     updateStateFromConfig();
+    let storedConfig;
+    try {
+      storedConfig = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || 'null');
+    } catch (error) {
+      storedConfig = null;
+    }
+
     const config = {
       title: state.title,
       owner: state.owner,
@@ -422,7 +454,13 @@ if (
     }
 
     if (aiPrompt) {
-      aiPrompt.value = buildAiPrompt(config);
+      if (aiDescInput) {
+        aiDescInput.value = storedConfig?.ai_description || '';
+      }
+      if (aiHardnessSelect) {
+        aiHardnessSelect.value = storedConfig?.ai_hardness || aiHardnessSelect.value || '3';
+      }
+      regenerateAiPrompt(config);
       aiPrompt.focus();
     }
     aiModal?.classList.add('open');
@@ -559,7 +597,48 @@ if (
         syncConfigValidity();
         return;
       }
+      updateStateFromConfig();
+      const aiConfig = {
+        title: state.title,
+        owner: state.owner,
+        language: state.language,
+        intent: state.intent,
+        rows: state.rows,
+        cols: state.cols,
+        categories: state.categories.slice(0, state.cols),
+        ai_description: aiDescInput?.value || '',
+        ai_hardness: aiHardnessSelect?.value || '3',
+      };
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(aiConfig));
+      } catch (error) {
+        console.warn('Unable to save config to storage', error);
+      }
       window.location.href = 'create-ai.html';
+    });
+
+    aiDescInput?.addEventListener('input', () => {
+      regenerateAiPrompt({
+        title: state.title,
+        owner: state.owner,
+        language: state.language,
+        intent: state.intent,
+        rows: state.rows,
+        cols: state.cols,
+        categories: state.categories.slice(0, state.cols),
+      });
+    });
+
+    aiHardnessSelect?.addEventListener('change', () => {
+      regenerateAiPrompt({
+        title: state.title,
+        owner: state.owner,
+        language: state.language,
+        intent: state.intent,
+        rows: state.rows,
+        cols: state.cols,
+        categories: state.categories.slice(0, state.cols),
+      });
     });
   }
 

@@ -160,13 +160,27 @@
         </div>
         <button type="button" class="ghost" data-close-modal aria-label="Close">✕</button>
       </header>
-      <div class="modal-body">
-        <p class="hint">This prompt guides ChatGPT to generate JSON for your board. Copy it, paste into ChatGPT, then bring the JSON back.</p>
-        <label class="modal-field">
-          <span class="sr-only">ChatGPT prompt</span>
-          <textarea id="ai-prompt" readonly></textarea>
-        </label>
-      </div>
+        <div class="modal-body">
+          <p class="hint">This prompt guides ChatGPT to generate JSON for your board. Copy it, paste into ChatGPT, then bring the JSON back.</p>
+          <div class="modal-field">
+            <label for="ai-desc">Description (optional)</label>
+            <textarea id="ai-desc" rows="3" placeholder="Add context, theme, inside jokes, constraints…"></textarea>
+          </div>
+          <div class="modal-field">
+            <label for="ai-hardness">Hardness (1–5)</label>
+            <select id="ai-hardness">
+              <option value="1">1 (Very easy)</option>
+              <option value="2">2 (Easy)</option>
+              <option value="3" selected>3 (Balanced)</option>
+              <option value="4">4 (Hard)</option>
+              <option value="5">5 (Very hard)</option>
+            </select>
+          </div>
+          <label class="modal-field">
+            <span class="sr-only">ChatGPT prompt</span>
+            <textarea id="ai-prompt" readonly></textarea>
+          </label>
+        </div>
       <footer class="modal-actions" style="flex-wrap: wrap; gap: 8px;">
         <button type="button" class="ghost" id="copy-ai-prompt">Copy prompt</button>
         <button type="button" class="ghost" data-close-modal>Close</button>
