@@ -93,6 +93,7 @@
       </div>
       <p class="error" id="config-error" role="alert" aria-live="polite"></p>
       <div class="step-actions step-actions-bottom">
+        <button type="button" class="ghost" id="use-ai">Use AI</button>
         <button type="button" class="accent" id="to-grid" disabled>Next</button>
       </div>
     </section>
@@ -145,6 +146,31 @@
       <footer class="modal-actions">
         <button type="button" class="ghost" data-close-modal>Cancel</button>
         <button type="button" class="accent" id="modal-save">Save</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="ai-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="ai-modal-title">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-dialog">
+      <header class="modal-head">
+        <div>
+          <p class="eyebrow">AI-assisted board</p>
+          <h3 id="ai-modal-title">Copy this prompt for ChatGPT</h3>
+        </div>
+        <button type="button" class="ghost" data-close-modal aria-label="Close">✕</button>
+      </header>
+      <div class="modal-body">
+        <p class="hint">This prompt guides ChatGPT to generate JSON for your board. Copy it, paste into ChatGPT, then bring the JSON back.</p>
+        <label class="modal-field">
+          <span class="sr-only">ChatGPT prompt</span>
+          <textarea id="ai-prompt" readonly></textarea>
+        </label>
+      </div>
+      <footer class="modal-actions" style="flex-wrap: wrap; gap: 8px;">
+        <button type="button" class="ghost" id="copy-ai-prompt">Copy prompt</button>
+        <button type="button" class="ghost" data-close-modal>Close</button>
+        <button type="button" class="accent" id="continue-to-ai">Continue to paste JSON</button>
       </footer>
     </div>
   </div>

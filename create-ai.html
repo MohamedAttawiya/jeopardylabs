@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI-assisted Board Creation</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="page-create" data-nav="create-ai">
+  <div data-include="header"></div>
+
+  <main>
+    <section class="screen active" style="max-width: 960px; margin: 0 auto; padding: 24px 16px 64px;">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">AI workflow</p>
+          <h2>Paste your ChatGPT JSON</h2>
+          <p class="lede">Validate the JSON and publish your board.</p>
+        </div>
+        <div>
+          <a href="createboard.html" class="ghost">← Start over</a>
+        </div>
+      </div>
+
+      <div class="panel categories-panel">
+        <div class="panel-head">
+          <div>
+            <h3>Board details</h3>
+            <p class="hint">Config from Step 1 is required. If it's missing, go back and choose "Use AI" again.</p>
+          </div>
+        </div>
+        <div id="config-summary" class="hint" aria-live="polite"></div>
+        <p id="config-missing" class="error" role="alert" aria-live="polite" style="margin-top: 8px;"></p>
+      </div>
+
+      <div class="panel" style="margin-top: 16px;">
+        <div class="panel-head" style="align-items: center;">
+          <div>
+            <h3>Paste AI JSON</h3>
+            <p class="hint">The JSON must match your selected language, category count, and points per row.</p>
+          </div>
+          <div class="step-actions" style="gap: 8px;">
+            <button type="button" class="ghost" id="validate-json">Validate</button>
+            <button type="button" class="accent" id="publish-ai" disabled>Publish</button>
+          </div>
+        </div>
+        <label class="modal-field" style="margin-top: 8px;">
+          <span class="sr-only">AI JSON</span>
+          <textarea id="ai-json-input" rows="12" placeholder="Paste the ChatGPT JSON response here"></textarea>
+        </label>
+        <p id="ai-error" class="error" role="alert" aria-live="polite"></p>
+        <p id="ai-status" class="hint" role="status" aria-live="polite"></p>
+      </div>
+
+      <div id="ai-preview" class="panel" style="margin-top: 16px; display: none;">
+        <div class="panel-head">
+          <h3>Preview</h3>
+        </div>
+        <div class="grid-preview" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+          <div>
+            <p class="eyebrow">Title</p>
+            <p id="preview-title"></p>
+          </div>
+          <div>
+            <p class="eyebrow">Categories (C)</p>
+            <p id="preview-categories"></p>
+          </div>
+          <div>
+            <p class="eyebrow">Points</p>
+            <p id="preview-points"></p>
+          </div>
+          <div>
+            <p class="eyebrow">Grid size</p>
+            <p id="preview-size"></p>
+          </div>
+          <div>
+            <p class="eyebrow">Language</p>
+            <p id="preview-language"></p>
+          </div>
+          <div>
+            <p class="eyebrow">Vibe</p>
+            <p id="preview-intent"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div data-include="footer"></div>
+
+  <script src="js/layout.js"></script>
+  <script src="js/create-ai.js"></script>
+</body>
+</html>
