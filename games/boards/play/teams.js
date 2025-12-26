@@ -9,7 +9,7 @@ import {
 
 const DEFAULT_STEP = 100;
 
-function renderTeams(container, teams, { onScore, onRename, scoreStep }) {
+function renderTeams(container, teams, { onScore, onRename, onSetScore, scoreStep }) {
   if (!container) return;
   container.innerHTML = "";
 
@@ -34,9 +34,26 @@ function renderTeams(container, teams, { onScore, onRename, scoreStep }) {
       name.textContent = value;
     });
 
-    const score = document.createElement("div");
-    score.className = "score";
-    score.textContent = String(team.score);
+	const score = document.createElement("input");
+	score.className = "score";
+	score.type = "number";
+	score.inputMode = "numeric";          // nicer on mobile
+	score.value = String(team.score);
+	score.setAttribute("aria-label", `Score for ${team.name}`);
+	score.addEventListener("keydown", (e) => {
+	  if (e.key === "Enter") {
+		e.preventDefault();
+		score.blur();
+	  }
+	});
+	score.addEventListener("blur", () => {
+	  const raw = score.value?.trim();
+	  const n = Number(raw);
+	  const value = Number.isFinite(n) ? n : 0;  // you can change default behavior here
+	  score.value = String(value);              // normalize what user sees
+	  onSetScore(idx, value);
+	});
+
 
     const controls = document.createElement("div");
     controls.className = "controls";
@@ -80,6 +97,13 @@ export function initTeams({ boardId, mountEls = [], initialCount = clampTeamCoun
     saveTeamsState(keys.teams, teams);
     renderAll();
   };
+  const onSetScore = (idx, value) => {
+  if (!teams[idx]) return;
+  teams[idx].score = value;
+  saveTeamsState(keys.teams, teams);
+  renderAll();
+};
+
 
   const onRename = (idx, value) => {
     if (!teams[idx]) return;
@@ -91,10 +115,11 @@ export function initTeams({ boardId, mountEls = [], initialCount = clampTeamCoun
   const renderAll = () => {
     mountEls.forEach((el) =>
       renderTeams(el, teams, {
-        onScore,
-        onRename,
-        scoreStep
-      })
+		  onScore,
+		  onRename,
+		  onSetScore,
+		  scoreStep
+		})
     );
   };
 
